@@ -33,8 +33,7 @@
 body {
   margin: 0;
   min-height: 100vh;
-  height: 100vh;
-  height: 100dvh;
+  min-height: 100dvh;
   color: var(--ink);
   font-family: "Plus Jakarta Sans", "Noto Sans TC", sans-serif;
   background:
@@ -42,7 +41,8 @@ body {
     radial-gradient(860px 520px at 112% -12%, rgba(255, 156, 95, 0.22), transparent 62%),
     linear-gradient(160deg, #050b10, #091722 45%, #081018);
   padding: var(--page-pad);
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 body::before {
@@ -135,8 +135,9 @@ body::before {
   grid-template-columns: 1.65fr 1fr 1.14fr;
   gap: var(--gap-md);
   min-height: 0;
-  height: calc(100vh - 132px);
-  height: calc(100dvh - 132px);
+  height: auto;
+  min-height: calc(100vh - 132px);
+  min-height: calc(100dvh - 132px);
 }
 
 .panel {
@@ -188,14 +189,18 @@ body::before {
   overflow: auto;
   align-content: start;
   padding-right: 2px;
+  scrollbar-gutter: stable;
 }
 
 .menu-item {
   position: relative;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
   border: 1px solid var(--line);
   border-radius: var(--radius-card);
   padding: clamp(8px, 0.65vw, 10px);
+  min-height: 120px;
   background: linear-gradient(140deg, rgba(11, 31, 41, 0.84), rgba(8, 21, 30, 0.88));
 }
 
@@ -217,11 +222,14 @@ body::before {
   z-index: 1;
   margin-bottom: 6px;
   font-size: var(--text-md);
+  line-height: 1.35;
+  overflow-wrap: anywhere;
 }
 
 .menu-item-price {
   position: relative;
   z-index: 1;
+  margin-top: auto;
   font-size: var(--text-xl);
   font-weight: 800;
   letter-spacing: -0.03em;
@@ -512,14 +520,10 @@ button:disabled {
 }
 
 @media (max-width: 1260px) {
-  body {
-    height: auto;
-    overflow: auto;
-  }
-
   .layout {
     grid-template-columns: 1fr;
     height: auto;
+    min-height: 0;
   }
 
   .cart {
@@ -532,9 +536,30 @@ button:disabled {
   }
 }
 
-@media (max-width: 1500px) and (min-width: 1261px) {
+@media (max-width: 1640px) and (min-width: 1261px) {
   .layout {
-    grid-template-columns: 1.5fr .95fr 1.08fr;
+    grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) auto;
+    min-height: 0;
+  }
+
+  .menu {
+    grid-column: 1;
+    grid-row: 1 / span 2;
+  }
+
+  .recent {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .cart {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  .cart-list {
+    max-height: min(34vh, 340px);
   }
 }
 
@@ -572,7 +597,8 @@ button:disabled {
   }
 
   .layout {
-    height: calc(100vh - 108px);
-    height: calc(100dvh - 108px);
+    height: auto;
+    min-height: calc(100vh - 108px);
+    min-height: calc(100dvh - 108px);
   }
 }
