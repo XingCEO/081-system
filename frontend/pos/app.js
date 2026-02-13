@@ -19,9 +19,14 @@ const ordersEl = document.getElementById("orders");
 const sourceSelect = document.getElementById("sourceSelect");
 
 const currency = new Intl.NumberFormat("zh-TW", { maximumFractionDigits: 2 });
+const RECENT_ORDER_LIMIT = 12;
 const datetimeFormatter = new Intl.DateTimeFormat("zh-TW", {
+  timeZone: "Asia/Taipei",
+  month: "2-digit",
+  day: "2-digit",
   hour: "2-digit",
   minute: "2-digit",
+  hour12: false,
 });
 
 const STATUS_LABEL = {
@@ -89,6 +94,25 @@ function normalizeLookup(value) {
 
 function formatMoney(value) {
   return currency.format(Number(value || 0));
+}
+
+function formatTaipeiTime(value) {
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return "-";
+  return `${datetimeFormatter.format(parsed)} (UTC+8)`;
+}
+
+function summarizeOrderItems(items, maxShown = 3) {
+  if (!Array.isArray(items) || !items.length) return "無品項";
+  const shown = items.slice(0, maxShown).map((item) => {
+    const note = item.note ? ` (${item.note})` : "";
+    return `${item.menu_item_name} x${item.quantity}${note}`;
+  });
+  const hidden = items.length - shown.length;
+  if (hidden > 0) {
+    return `${shown.join(" / ")} +${hidden}項`;
+  }
+  return shown.join(" / ");
 }
 
 function byId(id) {
@@ -231,8 +255,8 @@ function ensureComboDraft(combo) {
       side_codes: [],
     };
   }
-  const draft = state.comboDrafts[key];
 
+  const draft = state.comboDrafts[key];
   if (!Array.isArray(draft.drink_item_ids)) draft.drink_item_ids = [];
   if (!Array.isArray(draft.side_codes)) draft.side_codes = [];
 
@@ -338,6 +362,7 @@ function renderComboQuick() {
       for (let i = 0; i < combo.drink_choice_count; i += 1) {
         const select = document.createElement("select");
         select.className = "combo-select";
+
         const placeholder = document.createElement("option");
         placeholder.value = "";
         placeholder.textContent = `選擇飲料 ${i + 1}`;
@@ -472,15 +497,15 @@ function renderCart() {
 function renderRecentOrders() {
   ordersEl.innerHTML = "";
   if (!state.orders.length) {
-    ordersEl.innerHTML = '<div class="orders-empty">目前沒有最近訂單。</div>';
+    ordersEl.innerHTML = '<div class="orders-empty">目前沒有近期訂單。</div>';
     return;
   }
 
-  state.orders.slice(0, 30).forEach((order) => {
-    const itemsText = order.items
-      .map((item) => `${item.menu_item_name} x${item.quantity}${item.note ? ` (${item.note})` : ""}`)
-      .join(" / ");
-    const createdAt = new Date(order.created_at);
+  state.orders.slice(0, RECENT_ORDER_LIMIT).forEach((order) => {
+    const itemsText = summarizeOrderItems(order.items, 3);
+    const itemCount = Array.isArray(order.items)
+      ? order.items.reduce((sum, item) => sum + Number(item.quantity || 0), 0)
+      : 0;
 
     const card = document.createElement("div");
     card.className = "order-card";
@@ -492,8 +517,9 @@ function renderRecentOrders() {
       <div class="order-meta">
         <span>來源 ${escapeHtml(SOURCE_LABEL[order.source] || order.source)}</span>
         <span>付款 ${escapeHtml(PAYMENT_LABEL[order.payment_status] || order.payment_status)}</span>
+        <span>件數 ${itemCount}</span>
         <span>總額 $${formatMoney(order.total_amount)}</span>
-        <span>時間 ${datetimeFormatter.format(createdAt)}</span>
+        <span>台灣時間 ${formatTaipeiTime(order.created_at)}</span>
       </div>
       <div class="order-items">${escapeHtml(itemsText)}</div>
       <div class="order-actions"></div>
@@ -502,7 +528,7 @@ function renderRecentOrders() {
     const actionWrap = card.querySelector(".order-actions");
     if (["pending", "preparing", "ready"].includes(order.status)) {
       const amendBtn = document.createElement("button");
-      amendBtn.textContent = "用購物車覆蓋此單";
+      amendBtn.textContent = "用購物車修改";
       amendBtn.disabled = state.cart.length === 0;
       amendBtn.addEventListener("click", () => amendOrder(order.id, order.order_number));
       actionWrap.appendChild(amendBtn);
