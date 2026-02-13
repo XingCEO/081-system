@@ -1,14 +1,17 @@
 @import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Noto+Sans+TC:wght@400;500;700&display=swap");
 
 :root {
-  --ink: #f4f8ff;
-  --ink-soft: #b6c6d3;
-  --line: rgba(173, 201, 218, 0.3);
-  --panel: rgba(10, 24, 35, 0.78);
-  --panel-soft: rgba(9, 18, 28, 0.82);
-  --accent: #42c7a1;
-  --accent-2: #5ea7ff;
-  --warn: #ffcc76;
+  --ink: var(--sys-color-text);
+  --ink-soft: var(--sys-color-text-soft);
+  --line: var(--sys-color-line);
+  --panel: var(--sys-color-panel);
+  --panel-soft: var(--sys-color-panel-soft);
+  --accent: var(--sys-color-accent);
+  --accent-2: var(--sys-color-info);
+  --warn: var(--sys-color-warn);
+  --motion-fast: var(--sys-motion-fast);
+  --motion-base: var(--sys-motion-base);
+  --ease-standard: var(--sys-ease);
   --scroll-thumb: rgba(126, 168, 192, 0.45);
   --scroll-thumb-hover: rgba(126, 168, 192, 0.7);
   --scroll-track: rgba(16, 35, 48, 0.35);
@@ -145,7 +148,7 @@ h1 {
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  animation: rise .22s ease both;
+  animation: rise var(--motion-base) var(--ease-standard) both;
 }
 
 .panel-wide {
@@ -245,7 +248,9 @@ button {
   letter-spacing: 0.02em;
   cursor: pointer;
   box-shadow: 0 10px 20px rgba(20, 103, 81, 0.28);
-  transition: transform .15s ease, filter .15s ease;
+  transition:
+    transform var(--motion-fast) var(--ease-standard),
+    filter var(--motion-fast) var(--ease-standard);
 }
 
 button:hover {

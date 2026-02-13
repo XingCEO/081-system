@@ -1,14 +1,18 @@
 @import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Noto+Sans+TC:wght@400;500;700&display=swap");
 
 :root {
-  --ink: #f8fcff;
-  --ink-soft: #acc1d1;
-  --line: rgba(176, 207, 224, 0.26);
-  --panel: rgba(9, 24, 33, 0.78);
-  --accent: #44c9a0;
-  --accent-strong: #22a47f;
-  --accent-warm: #f29c5f;
-  --shadow: 0 24px 58px rgba(0, 0, 0, 0.32);
+  --ink: var(--sys-color-text);
+  --ink-soft: var(--sys-color-text-soft);
+  --line: var(--sys-color-line);
+  --panel: var(--sys-color-panel);
+  --accent: var(--sys-color-accent);
+  --accent-strong: var(--sys-color-accent-strong);
+  --accent-warm: var(--sys-color-warn);
+  --shadow: var(--sys-shadow-panel);
+  --motion-fast: var(--sys-motion-fast);
+  --motion-base: var(--sys-motion-base);
+  --motion-slow: var(--sys-motion-slow);
+  --ease-standard: var(--sys-ease);
   --page-pad: clamp(10px, 1.1vw, 20px);
   --gap-sm: clamp(6px, 0.55vw, 10px);
   --gap-md: clamp(8px, 0.8vw, 14px);
@@ -145,7 +149,7 @@ body::before {
   min-height: 0;
   display: flex;
   flex-direction: column;
-  animation: rise .35s ease both;
+  animation: rise var(--motion-slow) var(--ease-standard) both;
 }
 
 .panel-head {
@@ -381,7 +385,10 @@ button {
   font-size: var(--text-xs);
   font-weight: 800;
   letter-spacing: 0.02em;
-  transition: transform .16s ease, box-shadow .16s ease, filter .16s ease;
+  transition:
+    transform var(--motion-base) var(--ease-standard),
+    box-shadow var(--motion-base) var(--ease-standard),
+    filter var(--motion-fast) var(--ease-standard);
   box-shadow: 0 10px 20px rgba(19, 102, 82, 0.24);
 }
 

@@ -1,16 +1,19 @@
 @import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Noto+Sans+TC:wght@400;500;700&display=swap");
 
 :root {
-  --ink: #f5f9ff;
-  --ink-soft: #b4c7d8;
-  --line: rgba(166, 191, 215, 0.28);
-  --panel: rgba(9, 22, 34, 0.82);
-  --panel-soft: rgba(8, 18, 28, 0.86);
-  --pending: #ff9f63;
-  --preparing: #5baeff;
-  --ready: #42d2a5;
-  --danger: #ff777a;
-  --warn: #ffd07e;
+  --ink: var(--sys-color-text);
+  --ink-soft: var(--sys-color-text-soft);
+  --line: var(--sys-color-line);
+  --panel: var(--sys-color-panel);
+  --panel-soft: var(--sys-color-panel-soft);
+  --pending: var(--sys-color-warn);
+  --preparing: var(--sys-color-info);
+  --ready: var(--sys-color-accent);
+  --danger: var(--sys-color-danger);
+  --warn: var(--sys-color-warn);
+  --motion-fast: var(--sys-motion-fast);
+  --motion-base: var(--sys-motion-base);
+  --ease-standard: var(--sys-ease);
   --page-pad: clamp(10px, 1vw, 16px);
   --gap-sm: clamp(6px, .55vw, 10px);
   --gap-md: clamp(8px, .85vw, 14px);
@@ -406,7 +409,9 @@ button {
   cursor: pointer;
   background: linear-gradient(135deg, #43c9a0, #27a980);
   box-shadow: 0 6px 12px rgba(18, 96, 76, 0.24);
-  transition: transform .12s ease, filter .12s ease;
+  transition:
+    transform var(--motion-fast) var(--ease-standard),
+    filter var(--motion-fast) var(--ease-standard);
 }
 
 button:hover {
