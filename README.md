@@ -69,6 +69,10 @@ Change these in production.
 - `PUT /api/menu/items/{id}` (manager/owner)
 - `GET /api/menu/items/{id}/recipe` (manager/owner)
 - `PUT /api/menu/items/{id}/recipe` (manager/owner)
+- `GET /api/menu/combos`
+- `GET /api/menu/combos/{id}`
+- `POST /api/menu/combos` (manager/owner)
+- `PUT /api/menu/combos/{id}` (manager/owner)
 - `GET /api/orders`
 - `POST /api/orders`
 - `POST /api/orders/{id}/pay`
@@ -129,6 +133,25 @@ Change these in production.
 ```bash
 pytest -q
 ```
+
+## Batch import menu JSON
+
+Use the prepared payload (`imports/menu_202602_api_payload.json`) to upsert menu items and combo rules via API:
+
+```bash
+python scripts/import_menu_api.py --base-url http://127.0.0.1:8000 --username manager1 --password manager1234
+```
+
+Dry run (no write):
+
+```bash
+python scripts/import_menu_api.py --dry-run
+```
+
+Notes:
+
+- `menu_items` are upserted by `name`.
+- `combo_rules` are upserted by `code`.
 
 ## Next extensions
 

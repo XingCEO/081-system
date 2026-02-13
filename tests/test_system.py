@@ -316,3 +316,80 @@ def test_kitchen_can_view_low_stock() -> None:
 
     staff_res = client.get("/api/inventory/low-stock", headers=staff_headers)
     assert staff_res.status_code == 403
+
+
+def test_manager_can_create_and_update_combo_rule() -> None:
+    manager_headers = auth_headers("manager1", "manager1234")
+    staff_headers = auth_headers("staff1", "staff1234")
+
+    menu_items = client.get("/api/menu/items", headers=staff_headers).json()
+    milk_tea = find_item(menu_items, "name", "Milk Tea")
+
+    create_res = client.post(
+        "/api/menu/combos",
+        headers=manager_headers,
+        json={
+            "code": "set40",
+            "name": "40 Drink Set",
+            "bundle_price": 40,
+            "max_drink_price": 40,
+            "drink_choice_count": 1,
+            "side_choice_count": 1,
+            "eligible_drink_item_ids": [milk_tea["id"]],
+            "side_options": [{"code": "A", "name": "French Fries"}],
+            "raw_rule_text": "<=40 drink + choose one side",
+            "is_active": True,
+        },
+    )
+    assert create_res.status_code == 201
+    created = create_res.json()
+    assert created["code"] == "SET40"
+    assert created["eligible_drinks"][0]["menu_item_id"] == milk_tea["id"]
+    combo_id = created["id"]
+
+    list_res = client.get("/api/menu/combos", headers=staff_headers)
+    assert list_res.status_code == 200
+    assert any(row["id"] == combo_id for row in list_res.json())
+
+    update_res = client.put(
+        f"/api/menu/combos/{combo_id}",
+        headers=manager_headers,
+        json={
+            "side_choice_count": 2,
+            "side_options": [
+                {"code": "A", "name": "French Fries"},
+                {"code": "B", "name": "Soup"},
+            ],
+            "is_active": False,
+        },
+    )
+    assert update_res.status_code == 200
+    updated = update_res.json()
+    assert updated["side_choice_count"] == 2
+    assert len(updated["side_options"]) == 2
+    assert updated["is_active"] is False
+
+    inactive_list_res = client.get("/api/menu/combos?active_only=false", headers=staff_headers)
+    assert inactive_list_res.status_code == 200
+    assert any(row["id"] == combo_id and row["is_active"] is False for row in inactive_list_res.json())
+
+
+def test_staff_cannot_create_combo_rule() -> None:
+    staff_headers = auth_headers("staff1", "staff1234")
+    menu_items = client.get("/api/menu/items", headers=staff_headers).json()
+    milk_tea = find_item(menu_items, "name", "Milk Tea")
+
+    res = client.post(
+        "/api/menu/combos",
+        headers=staff_headers,
+        json={
+            "code": "SET403",
+            "name": "Forbidden Set",
+            "bundle_price": 40,
+            "drink_choice_count": 1,
+            "side_choice_count": 0,
+            "eligible_drink_item_ids": [milk_tea["id"]],
+            "side_options": [],
+        },
+    )
+    assert res.status_code == 403

@@ -89,6 +89,61 @@ class MenuItemOut(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class ComboSideOptionIn(BaseModel):
+    code: str = Field(min_length=1, max_length=20)
+    name: str = Field(min_length=1, max_length=120)
+
+
+class ComboDrinkItemOut(BaseModel):
+    menu_item_id: int
+    menu_item_name: str
+
+
+class ComboSideOptionOut(BaseModel):
+    code: str
+    name: str
+
+
+class ComboRuleCreate(BaseModel):
+    code: str = Field(min_length=1, max_length=40)
+    name: str = Field(min_length=1, max_length=120)
+    bundle_price: float = Field(gt=0)
+    max_drink_price: float | None = Field(default=None, gt=0)
+    drink_choice_count: int = Field(default=1, ge=0, le=20)
+    side_choice_count: int = Field(default=0, ge=0, le=20)
+    eligible_drink_item_ids: list[int] = Field(default_factory=list, max_length=100)
+    side_options: list[ComboSideOptionIn] = Field(default_factory=list, max_length=100)
+    raw_rule_text: str | None = Field(default=None, max_length=300)
+    is_active: bool = True
+
+
+class ComboRuleUpdate(BaseModel):
+    code: str | None = Field(default=None, min_length=1, max_length=40)
+    name: str | None = Field(default=None, min_length=1, max_length=120)
+    bundle_price: float | None = Field(default=None, gt=0)
+    max_drink_price: float | None = Field(default=None, gt=0)
+    drink_choice_count: int | None = Field(default=None, ge=0, le=20)
+    side_choice_count: int | None = Field(default=None, ge=0, le=20)
+    eligible_drink_item_ids: list[int] | None = Field(default=None, max_length=100)
+    side_options: list[ComboSideOptionIn] | None = Field(default=None, max_length=100)
+    raw_rule_text: str | None = Field(default=None, max_length=300)
+    is_active: bool | None = None
+
+
+class ComboRuleOut(BaseModel):
+    id: int
+    code: str
+    name: str
+    bundle_price: float
+    max_drink_price: float | None
+    drink_choice_count: int
+    side_choice_count: int
+    raw_rule_text: str | None
+    is_active: bool
+    eligible_drinks: list[ComboDrinkItemOut]
+    side_options: list[ComboSideOptionOut]
+
+
 class RecipeLineIn(BaseModel):
     ingredient_id: int
     quantity: float = Field(gt=0)

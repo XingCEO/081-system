@@ -68,6 +68,11 @@ class MenuItem(Base):
         back_populates="menu_item",
         cascade="all, delete-orphan",
     )
+    combo_drink_links: Mapped[list["ComboDrinkItem"]] = relationship(
+        "ComboDrinkItem",
+        back_populates="menu_item",
+        cascade="all, delete-orphan",
+    )
 
 
 class Ingredient(Base):
@@ -105,6 +110,67 @@ class RecipeLine(Base):
 
     menu_item: Mapped[MenuItem] = relationship("MenuItem", back_populates="recipe_lines")
     ingredient: Mapped[Ingredient] = relationship("Ingredient", back_populates="recipe_lines")
+
+
+class ComboRule(Base):
+    __tablename__ = "combo_rules"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    code: Mapped[str] = mapped_column(String(40), unique=True, index=True)
+    name: Mapped[str] = mapped_column(String(120), nullable=False, index=True)
+    bundle_price: Mapped[float] = mapped_column(Float, nullable=False)
+    max_drink_price: Mapped[float | None] = mapped_column(Float, nullable=True)
+    drink_choice_count: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
+    side_choice_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    raw_rule_text: Mapped[str | None] = mapped_column(String(300), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+    )
+
+    eligible_drinks: Mapped[list["ComboDrinkItem"]] = relationship(
+        "ComboDrinkItem",
+        back_populates="combo_rule",
+        cascade="all, delete-orphan",
+    )
+    side_options: Mapped[list["ComboSideOption"]] = relationship(
+        "ComboSideOption",
+        back_populates="combo_rule",
+        cascade="all, delete-orphan",
+    )
+
+
+class ComboDrinkItem(Base):
+    __tablename__ = "combo_drink_items"
+    __table_args__ = (
+        UniqueConstraint("combo_rule_id", "menu_item_id", name="uq_combo_drink_item"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    combo_rule_id: Mapped[int] = mapped_column(ForeignKey("combo_rules.id", ondelete="CASCADE"), nullable=False, index=True)
+    menu_item_id: Mapped[int] = mapped_column(ForeignKey("menu_items.id"), nullable=False)
+    sort_order: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+
+    combo_rule: Mapped[ComboRule] = relationship("ComboRule", back_populates="eligible_drinks")
+    menu_item: Mapped[MenuItem] = relationship("MenuItem", back_populates="combo_drink_links")
+
+
+class ComboSideOption(Base):
+    __tablename__ = "combo_side_options"
+    __table_args__ = (
+        UniqueConstraint("combo_rule_id", "code", name="uq_combo_side_code"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    combo_rule_id: Mapped[int] = mapped_column(ForeignKey("combo_rules.id", ondelete="CASCADE"), nullable=False, index=True)
+    code: Mapped[str] = mapped_column(String(20), nullable=False)
+    name: Mapped[str] = mapped_column(String(120), nullable=False)
+    sort_order: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+
+    combo_rule: Mapped[ComboRule] = relationship("ComboRule", back_populates="side_options")
 
 
 class Order(Base):
