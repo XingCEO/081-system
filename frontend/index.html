@@ -1,0 +1,358 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>早餐店智慧系統</title>
+  <style>
+    @import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Noto+Sans+TC:wght@400;500;700&display=swap");
+
+    :root {
+      --ink: #f8fbff;
+      --ink-soft: #c9d8e3;
+      --line: rgba(184, 212, 229, 0.28);
+      --panel: rgba(14, 28, 38, 0.72);
+      --panel-strong: rgba(12, 22, 32, 0.9);
+      --pos: #4cc7a2;
+      --kds: #ff9c5d;
+      --admin: #5ea5ff;
+      --docs: #f2d47f;
+      --page-pad: clamp(10px, 1.2vw, 26px);
+      --gap-sm: clamp(8px, 0.7vw, 14px);
+      --gap-md: clamp(10px, 1vw, 20px);
+      --panel-pad: clamp(20px, 2vw, 34px);
+      --text-xs: clamp(10px, 0.5vw, 12px);
+      --text-sm: clamp(12px, 0.7vw, 15px);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      font-family: "Plus Jakarta Sans", "Noto Sans TC", sans-serif;
+      background:
+        radial-gradient(980px 520px at -8% -20%, rgba(91, 181, 255, 0.33), transparent 63%),
+        radial-gradient(980px 560px at 106% -12%, rgba(255, 130, 86, 0.26), transparent 63%),
+        radial-gradient(780px 500px at 80% 120%, rgba(80, 220, 172, 0.24), transparent 60%),
+        linear-gradient(145deg, #050b11, #0c1822 54%, #09121a);
+      padding: var(--page-pad);
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.25;
+      background-image: linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+      background-size: 40px 40px;
+      z-index: -1;
+    }
+
+    .shell {
+      max-width: 1160px;
+      margin: 0 auto;
+      border: 1px solid var(--line);
+      border-radius: 30px;
+      overflow: hidden;
+      background: linear-gradient(170deg, rgba(9, 20, 31, 0.72), rgba(10, 19, 31, 0.58));
+      backdrop-filter: blur(12px);
+      box-shadow: 0 34px 90px rgba(0, 0, 0, 0.42);
+      animation: rise .7s ease both;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1.3fr 1fr;
+      gap: var(--gap-md);
+      padding: var(--panel-pad);
+      border-bottom: 1px solid var(--line);
+      background: linear-gradient(145deg, rgba(7, 18, 30, 0.88), rgba(9, 29, 40, 0.72));
+    }
+
+    .kicker {
+      margin: 0 0 12px;
+      color: #9ec4da;
+      letter-spacing: 0.18em;
+      font-size: var(--text-xs);
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+
+    h1 {
+      margin: 0 0 12px;
+      font-size: clamp(32px, 5.4vw, 58px);
+      line-height: 1.05;
+      letter-spacing: -0.04em;
+      text-wrap: balance;
+    }
+
+    .lead {
+      margin: 0;
+      color: var(--ink-soft);
+      line-height: 1.7;
+      font-size: var(--text-sm);
+      max-width: 56ch;
+    }
+
+    .chip-row {
+      margin: 18px 0 0;
+      padding: 0;
+      list-style: none;
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--gap-sm);
+    }
+
+    .chip-row li {
+      border: 1px solid rgba(166, 201, 222, 0.32);
+      border-radius: 999px;
+      padding: 5px 12px;
+      font-size: var(--text-xs);
+      color: #d8e9f6;
+      background: rgba(14, 32, 45, 0.48);
+    }
+
+    .hero-side {
+      display: grid;
+      gap: var(--gap-sm);
+      align-content: start;
+    }
+
+    .hero-card {
+      padding: clamp(10px, 0.9vw, 14px);
+      border: 1px solid var(--line);
+      border-radius: clamp(11px, 1vw, 15px);
+      background: var(--panel);
+      animation: rise .6s ease both;
+    }
+
+    .hero-card small {
+      display: block;
+      color: #a4c4d5;
+      margin-bottom: 6px;
+      font-size: var(--text-xs);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .hero-card strong {
+      font-size: 25px;
+      letter-spacing: -0.03em;
+    }
+
+    .hero-card p {
+      margin: 8px 0 0;
+      color: var(--ink-soft);
+      line-height: 1.5;
+      font-size: var(--text-sm);
+    }
+
+    .portal-grid {
+      padding: clamp(16px, 1.4vw, 24px) var(--panel-pad) var(--panel-pad);
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: var(--gap-sm);
+    }
+
+    .portal {
+      position: relative;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: clamp(13px, 1.1vw, 18px);
+      text-decoration: none;
+      color: var(--ink);
+      min-height: clamp(140px, 12vw, 176px);
+      padding: clamp(12px, 0.95vw, 16px);
+      display: grid;
+      align-content: end;
+      gap: var(--gap-sm);
+      transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease;
+      animation: rise .65s ease both;
+    }
+
+    .portal::before {
+      content: "";
+      position: absolute;
+      width: 170px;
+      height: 170px;
+      border-radius: 999px;
+      top: -56px;
+      right: -56px;
+      opacity: .34;
+      filter: blur(1px);
+      transition: transform .26s ease;
+    }
+
+    .portal:hover {
+      transform: translateY(-4px);
+      border-color: rgba(226, 240, 250, 0.56);
+      box-shadow: 0 16px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    .portal:hover::before {
+      transform: scale(1.08);
+    }
+
+    .portal h2 {
+      margin: 0;
+      font-size: clamp(17px, 1.45vw, 22px);
+      letter-spacing: -0.02em;
+      position: relative;
+      z-index: 2;
+    }
+
+    .portal p {
+      margin: 0;
+      color: var(--ink-soft);
+      line-height: 1.55;
+      font-size: var(--text-sm);
+      position: relative;
+      z-index: 2;
+    }
+
+    .portal-pos {
+      background: linear-gradient(140deg, rgba(16, 43, 45, 0.86), rgba(13, 34, 32, 0.88));
+    }
+
+    .portal-pos::before {
+      background: var(--pos);
+    }
+
+    .portal-kds {
+      background: linear-gradient(140deg, rgba(44, 30, 19, 0.86), rgba(35, 25, 16, 0.9));
+    }
+
+    .portal-kds::before {
+      background: var(--kds);
+    }
+
+    .portal-admin {
+      background: linear-gradient(140deg, rgba(15, 29, 43, 0.88), rgba(13, 25, 38, 0.9));
+    }
+
+    .portal-admin::before {
+      background: var(--admin);
+    }
+
+    .portal-docs {
+      background: linear-gradient(140deg, rgba(46, 38, 19, 0.86), rgba(31, 26, 14, 0.92));
+    }
+
+    .portal-docs::before {
+      background: var(--docs);
+    }
+
+    .footer {
+      border-top: 1px solid var(--line);
+      padding: clamp(11px, 0.9vw, 14px) var(--panel-pad) clamp(14px, 1vw, 18px);
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: var(--gap-sm);
+      color: #9ab6c9;
+      font-size: var(--text-xs);
+      background: var(--panel-strong);
+    }
+
+    @keyframes rise {
+      from {
+        opacity: 0;
+        transform: translateY(14px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media (max-width: 980px) {
+      body {
+        padding: 12px;
+      }
+
+      .hero {
+        grid-template-columns: 1fr;
+        padding: clamp(16px, 3.4vw, 24px);
+      }
+
+      .portal-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 640px) {
+      .portal-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <section class="hero">
+      <div>
+        <p class="kicker">Breakfast Ops System</p>
+        <h1>一套打通點餐、出餐、庫存與營運管理</h1>
+        <p class="lead">
+          前台建立訂單後，廚房看板即時同步，支付與庫存扣減自動串接，管理端直接查看營收、熱銷與低庫存。
+          現場更快，管理更穩。
+        </p>
+        <ul class="chip-row">
+          <li>POS + KDS 即時同步</li>
+          <li>庫存交易可追蹤</li>
+          <li>營運數據日報表</li>
+        </ul>
+      </div>
+
+      <aside class="hero-side">
+        <article class="hero-card">
+          <small>Operation Flow</small>
+          <strong>接單 7 秒內到廚房</strong>
+          <p>WebSocket 事件推播，廚房不需手動重整。</p>
+        </article>
+        <article class="hero-card">
+          <small>Inventory Safety</small>
+          <strong>庫存不足即時阻擋</strong>
+          <p>防止超賣，改單與取消會自動調整原料。</p>
+        </article>
+        <article class="hero-card">
+          <small>Role Control</small>
+          <strong>角色權限清楚隔離</strong>
+          <p>櫃台、廚房、店長、老闆使用同系統但不同權限。</p>
+        </article>
+      </aside>
+    </section>
+
+    <section class="portal-grid">
+      <a class="portal portal-pos" href="/pos">
+        <h2>前台 POS</h2>
+        <p>點餐、結帳、修單、看近期訂單。</p>
+      </a>
+      <a class="portal portal-kds" href="/kds">
+        <h2>廚房 KDS</h2>
+        <p>待處理 / 製作中 / 待取餐分欄管理。</p>
+      </a>
+      <a class="portal portal-admin" href="/admin">
+        <h2>後台管理</h2>
+        <p>庫存異動、營運分析、稽核紀錄。</p>
+      </a>
+      <a class="portal portal-docs" href="/docs">
+        <h2>API 文件</h2>
+        <p>Swagger 文件與所有端點測試入口。</p>
+      </a>
+    </section>
+
+    <footer class="footer">
+      <span>FastAPI + SQLAlchemy + WebSocket</span>
+      <span>Breakfast Store System</span>
+    </footer>
+  </main>
+</body>
+</html>

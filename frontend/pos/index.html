@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>前台點餐 POS</title>
+  <link rel="stylesheet" href="/pos/styles.css" />
+</head>
+<body>
+  <div class="bg-orb bg-orb-a"></div>
+  <div class="bg-orb bg-orb-b"></div>
+
+  <header class="topbar">
+    <div>
+      <p class="eyebrow">Front Counter Console</p>
+      <h1>前台點餐 POS</h1>
+      <p class="lead">快速開單、即時送廚房、現場修單與追蹤訂單狀態。</p>
+    </div>
+    <div class="topbar-actions">
+      <a href="/">回首頁</a>
+      <span class="hint">可用角色：櫃台 / 店長 / 老闆</span>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="panel menu">
+      <div class="panel-head">
+        <h2>菜單</h2>
+        <span class="sub">點選品項加入訂單</span>
+      </div>
+      <div id="menuGrid" class="menu-grid"></div>
+    </section>
+
+    <section class="panel cart">
+      <div class="panel-head">
+        <h2>本次訂單</h2>
+      </div>
+
+      <label class="field">
+        訂單來源
+        <select id="sourceSelect">
+          <option value="takeout">外帶</option>
+          <option value="dine_in">內用</option>
+          <option value="delivery">外送</option>
+        </select>
+      </label>
+
+      <ul id="cartList" class="cart-list"></ul>
+
+      <div class="total-row">
+        <span>總金額</span>
+        <strong>$<span id="total">0</span></strong>
+      </div>
+
+      <button id="submitOrderBtn" class="primary-btn">送出訂單</button>
+      <p id="message" class="message" aria-live="polite"></p>
+    </section>
+
+    <section class="panel recent">
+      <div class="panel-head">
+        <h2>近期訂單</h2>
+        <span class="sub">系統自動更新</span>
+      </div>
+      <div id="orders" class="orders"></div>
+    </section>
+  </main>
+
+  <script src="/shared/auth.js"></script>
+  <script src="/pos/app.js"></script>
+</body>
+</html>

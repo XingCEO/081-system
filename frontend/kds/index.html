@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>廚房出單看板 KDS</title>
+  <link rel="stylesheet" href="/kds/styles.css" />
+</head>
+<body>
+  <div class="bg-orb bg-orb-a"></div>
+  <div class="bg-orb bg-orb-b"></div>
+
+  <header class="topbar">
+    <div>
+      <p class="eyebrow">Kitchen Dispatch Screen</p>
+      <h1>廚房出單看板 KDS</h1>
+      <p id="connectionStatus" class="connection ok">即時連線中</p>
+    </div>
+    <div class="topbar-actions">
+      <a href="/">回首頁</a>
+      <small>可用角色：廚房 / 店長 / 老闆</small>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="board">
+      <section class="lane lane-pending">
+        <header>
+          <h2>待處理</h2>
+          <span>新進訂單 <strong id="pendingCount">0</strong></span>
+        </header>
+        <div id="pendingCol"></div>
+      </section>
+
+      <section class="lane lane-preparing">
+        <header>
+          <h2>製作中</h2>
+          <span>正在備餐 <strong id="preparingCount">0</strong></span>
+        </header>
+        <div id="preparingCol"></div>
+      </section>
+
+      <section class="lane lane-ready">
+        <header>
+          <h2>待取餐</h2>
+          <span>等待交餐 <strong id="readyCount">0</strong></span>
+        </header>
+        <div id="readyCol"></div>
+      </section>
+    </section>
+
+    <aside class="side-panel">
+      <section class="panel">
+        <h3>低庫存警示</h3>
+        <ul id="lowStockList"></ul>
+      </section>
+      <section class="panel">
+        <h3>即時事件</h3>
+        <ul id="alertList"></ul>
+      </section>
+    </aside>
+  </main>
+
+  <script src="/shared/auth.js"></script>
+  <script src="/kds/app.js"></script>
+</body>
+</html>

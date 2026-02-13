@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+.env
+breakfast.db
+test_breakfast.db
+alembic_verify.db
+alembic_verify2.db
+server.out.log
+server.err.log
