@@ -6,6 +6,7 @@ const state = {
   combos: [],
   comboDrafts: {},
   selectedCategory: "ALL",
+  activeComboId: null,
 };
 
 const menuGrid = document.getElementById("menuGrid");
@@ -17,6 +18,12 @@ const messageEl = document.getElementById("message");
 const submitOrderBtn = document.getElementById("submitOrderBtn");
 const ordersEl = document.getElementById("orders");
 const sourceSelect = document.getElementById("sourceSelect");
+
+const comboModal = document.getElementById("comboModal");
+const comboModalBody = document.getElementById("comboModalBody");
+const comboModalCloseBtn = document.getElementById("comboModalClose");
+const comboModalCancelBtn = document.getElementById("comboModalCancel");
+const comboModalConfirmBtn = document.getElementById("comboModalConfirm");
 
 const currency = new Intl.NumberFormat("zh-TW", { maximumFractionDigits: 2 });
 const RECENT_ORDER_LIMIT = 12;
@@ -109,14 +116,16 @@ function summarizeOrderItems(items, maxShown = 3) {
     return `${item.menu_item_name} x${item.quantity}${note}`;
   });
   const hidden = items.length - shown.length;
-  if (hidden > 0) {
-    return `${shown.join(" / ")} +${hidden}項`;
-  }
+  if (hidden > 0) return `${shown.join(" / ")} +${hidden}項`;
   return shown.join(" / ");
 }
 
 function byId(id) {
   return state.menuById.get(id) || null;
+}
+
+function comboById(id) {
+  return state.combos.find((combo) => combo.id === id) || null;
 }
 
 function mapTagToCategory(tag) {
@@ -147,7 +156,6 @@ function normalizeMenuItem(item) {
   }
 
   const category = mapTagToCategory(taggedCategory) || detectCategory(displayName);
-
   return {
     ...item,
     display_name: displayName || rawName,
@@ -167,8 +175,7 @@ function sortMenu(items) {
 function getCategoryStats() {
   const stats = new Map();
   state.menu.forEach((item) => {
-    const current = stats.get(item.category) || 0;
-    stats.set(item.category, current + 1);
+    stats.set(item.category, (stats.get(item.category) || 0) + 1);
   });
   return stats;
 }
@@ -176,11 +183,9 @@ function getCategoryStats() {
 function renderCategoryBar() {
   const stats = getCategoryStats();
   const categories = CATEGORY_ORDER.filter((key) => stats.has(key));
-  const allCount = state.menu.length;
 
   menuCategoryBar.innerHTML = "";
-  const chips = [{ key: "ALL", count: allCount }, ...categories.map((key) => ({ key, count: stats.get(key) }))];
-
+  const chips = [{ key: "ALL", count: state.menu.length }, ...categories.map((key) => ({ key, count: stats.get(key) }))];
   chips.forEach((chip) => {
     const button = document.createElement("button");
     button.type = "button";
@@ -202,10 +207,9 @@ function renderMenu() {
     return;
   }
 
-  const rows =
-    state.selectedCategory === "ALL"
-      ? state.menu
-      : state.menu.filter((item) => item.category === state.selectedCategory);
+  const rows = state.selectedCategory === "ALL"
+    ? state.menu
+    : state.menu.filter((item) => item.category === state.selectedCategory);
 
   if (!rows.length) {
     menuGrid.innerHTML = '<div class="menu-empty">這個分類目前沒有品項。</div>';
@@ -276,13 +280,13 @@ function applyCombo(combo) {
 
   if (chosenDrinkIds.length < combo.drink_choice_count) {
     messageEl.textContent = `請先選滿 ${combo.drink_choice_count} 杯飲料（${combo.name}）。`;
-    return;
+    return false;
   }
 
   const selectedSideCodes = [...draft.side_codes];
   if (selectedSideCodes.length < combo.side_choice_count) {
     messageEl.textContent = `請先選滿 ${combo.side_choice_count} 個副餐（${combo.name}）。`;
-    return;
+    return false;
   }
 
   const mappedSideIds = [];
@@ -300,13 +304,14 @@ function applyCombo(combo) {
 
   if (unresolved.length) {
     messageEl.textContent = `副餐未對應到菜單：${unresolved.join("、")}，請手動加入。`;
-    return;
+    return false;
   }
 
   const allIds = [...chosenDrinkIds, ...mappedSideIds];
   allIds.forEach((menuItemId) => addToCart(menuItemId, { render: false }));
   renderCart();
   messageEl.textContent = `已加入 ${combo.name}（${allIds.length} 項，單品計價）。`;
+  return true;
 }
 
 function renderComboQuick() {
@@ -315,26 +320,16 @@ function renderComboQuick() {
     comboQuickSection.style.display = "none";
     return;
   }
-  comboQuickSection.style.display = "grid";
 
+  comboQuickSection.style.display = "grid";
   const head = document.createElement("div");
   head.className = "combo-headline";
-  head.innerHTML = "<strong>套餐快捷加入</strong><span>先選飲料/副餐，再一次加入購物車</span>";
+  head.innerHTML = "<strong>套餐快捷加入</strong><span>點一下套餐就會自動跳出選擇視窗</span>";
   comboQuickSection.appendChild(head);
 
   state.combos.forEach((combo) => {
-    const draft = ensureComboDraft(combo);
     const card = document.createElement("article");
     card.className = "combo-card";
-
-    const sideRows = combo.side_options.map((option) => {
-      const mapped = findMenuItemForSideOption(option.name);
-      return {
-        ...option,
-        mappedMenuName: mapped ? mapped.display_name : null,
-      };
-    });
-
     card.innerHTML = `
       <div class="combo-title-row">
         <h3>${escapeHtml(combo.name)}</h3>
@@ -344,94 +339,138 @@ function renderComboQuick() {
         <span>飲料：${combo.drink_choice_count} 杯</span>
         <span>副餐：${combo.side_choice_count} 份</span>
       </div>
-      <p class="combo-note">套餐規則輔助選擇，送單時目前仍以單品價格計算。</p>
-      <div class="combo-controls"></div>
-      <button class="combo-add-btn" type="button">加入 ${escapeHtml(combo.name)}</button>
+      <button class="combo-trigger-btn" type="button">選擇套餐</button>
     `;
 
-    const controls = card.querySelector(".combo-controls");
-
-    if (combo.drink_choice_count > 0) {
-      const drinkWrap = document.createElement("div");
-      drinkWrap.className = "combo-control-block";
-      const title = document.createElement("p");
-      title.className = "combo-control-title";
-      title.textContent = `飲料選擇 (${combo.drink_choice_count})`;
-      drinkWrap.appendChild(title);
-
-      for (let i = 0; i < combo.drink_choice_count; i += 1) {
-        const select = document.createElement("select");
-        select.className = "combo-select";
-
-        const placeholder = document.createElement("option");
-        placeholder.value = "";
-        placeholder.textContent = `選擇飲料 ${i + 1}`;
-        select.appendChild(placeholder);
-
-        combo.eligible_drinks.forEach((drink) => {
-          const option = document.createElement("option");
-          option.value = String(drink.menu_item_id);
-          option.textContent = drink.menu_item_name;
-          select.appendChild(option);
-        });
-
-        select.value = draft.drink_item_ids[i] ? String(draft.drink_item_ids[i]) : "";
-        select.addEventListener("change", (evt) => {
-          draft.drink_item_ids[i] = evt.target.value ? Number(evt.target.value) : "";
-        });
-        drinkWrap.appendChild(select);
-      }
-      controls.appendChild(drinkWrap);
-    }
-
-    if (combo.side_choice_count > 0) {
-      const sideWrap = document.createElement("div");
-      sideWrap.className = "combo-control-block";
-      const title = document.createElement("p");
-      title.className = "combo-control-title";
-      title.textContent = `副餐選擇 (${combo.side_choice_count})`;
-      sideWrap.appendChild(title);
-
-      sideRows.forEach((option) => {
-        const row = document.createElement("label");
-        row.className = "combo-side-row";
-
-        const checkbox = document.createElement("input");
-        checkbox.type = "checkbox";
-        checkbox.value = option.code;
-        checkbox.checked = draft.side_codes.includes(option.code);
-        checkbox.addEventListener("change", (evt) => {
-          if (evt.target.checked) {
-            if (draft.side_codes.length >= combo.side_choice_count) {
-              evt.target.checked = false;
-              messageEl.textContent = `${combo.name} 最多選 ${combo.side_choice_count} 個副餐。`;
-              return;
-            }
-            draft.side_codes.push(option.code);
-          } else {
-            draft.side_codes = draft.side_codes.filter((code) => code !== option.code);
-          }
-        });
-
-        const text = document.createElement("span");
-        text.className = "combo-side-text";
-        if (option.mappedMenuName) {
-          text.textContent = `${option.code}. ${option.name} → ${option.mappedMenuName}`;
-        } else {
-          text.textContent = `${option.code}. ${option.name}（未對應商品）`;
-          row.classList.add("unmapped");
-        }
-
-        row.appendChild(checkbox);
-        row.appendChild(text);
-        sideWrap.appendChild(row);
-      });
-      controls.appendChild(sideWrap);
-    }
-
-    card.querySelector(".combo-add-btn").addEventListener("click", () => applyCombo(combo));
+    const open = () => openComboModal(combo.id);
+    card.querySelector(".combo-trigger-btn").addEventListener("click", open);
+    card.addEventListener("dblclick", open);
     comboQuickSection.appendChild(card);
   });
+}
+
+function renderComboModalContent(combo) {
+  const draft = ensureComboDraft(combo);
+  comboModalBody.innerHTML = "";
+
+  const summary = document.createElement("div");
+  summary.className = "combo-card";
+  summary.innerHTML = `
+    <div class="combo-title-row">
+      <h3>${escapeHtml(combo.name)}</h3>
+      <span class="combo-price">$${formatMoney(combo.bundle_price)}</span>
+    </div>
+    <div class="combo-meta">
+      <span>飲料：${combo.drink_choice_count} 杯</span>
+      <span>副餐：${combo.side_choice_count} 份</span>
+    </div>
+  `;
+  comboModalBody.appendChild(summary);
+
+  if (combo.drink_choice_count > 0) {
+    const drinkWrap = document.createElement("div");
+    drinkWrap.className = "combo-control-block";
+    const title = document.createElement("p");
+    title.className = "combo-control-title";
+    title.textContent = `飲料選擇 (${combo.drink_choice_count})`;
+    drinkWrap.appendChild(title);
+
+    for (let i = 0; i < combo.drink_choice_count; i += 1) {
+      const select = document.createElement("select");
+      select.className = "combo-select";
+
+      const placeholder = document.createElement("option");
+      placeholder.value = "";
+      placeholder.textContent = `選擇飲料 ${i + 1}`;
+      select.appendChild(placeholder);
+
+      combo.eligible_drinks.forEach((drink) => {
+        const option = document.createElement("option");
+        option.value = String(drink.menu_item_id);
+        option.textContent = drink.menu_item_name;
+        select.appendChild(option);
+      });
+
+      select.value = draft.drink_item_ids[i] ? String(draft.drink_item_ids[i]) : "";
+      select.addEventListener("change", (evt) => {
+        draft.drink_item_ids[i] = evt.target.value ? Number(evt.target.value) : "";
+      });
+      drinkWrap.appendChild(select);
+    }
+    comboModalBody.appendChild(drinkWrap);
+  }
+
+  if (combo.side_choice_count > 0) {
+    const sideWrap = document.createElement("div");
+    sideWrap.className = "combo-control-block";
+    const title = document.createElement("p");
+    title.className = "combo-control-title";
+    title.textContent = `副餐選擇 (${combo.side_choice_count})`;
+    sideWrap.appendChild(title);
+
+    combo.side_options.forEach((option) => {
+      const mapped = findMenuItemForSideOption(option.name);
+      const row = document.createElement("label");
+      row.className = "combo-side-row";
+
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.value = option.code;
+      checkbox.checked = draft.side_codes.includes(option.code);
+      checkbox.addEventListener("change", (evt) => {
+        if (evt.target.checked) {
+          if (draft.side_codes.length >= combo.side_choice_count) {
+            evt.target.checked = false;
+            messageEl.textContent = `${combo.name} 最多選 ${combo.side_choice_count} 個副餐。`;
+            return;
+          }
+          draft.side_codes.push(option.code);
+        } else {
+          draft.side_codes = draft.side_codes.filter((code) => code !== option.code);
+        }
+      });
+
+      const text = document.createElement("span");
+      text.className = "combo-side-text";
+      if (mapped) {
+        text.textContent = `${option.code}. ${option.name} -> ${mapped.display_name}`;
+      } else {
+        text.textContent = `${option.code}. ${option.name} (未對應商品)`;
+        row.classList.add("unmapped");
+      }
+
+      row.appendChild(checkbox);
+      row.appendChild(text);
+      sideWrap.appendChild(row);
+    });
+    comboModalBody.appendChild(sideWrap);
+  }
+}
+
+function openComboModal(comboId) {
+  const combo = comboById(comboId);
+  if (!combo || !comboModal) return;
+
+  state.activeComboId = comboId;
+  renderComboModalContent(combo);
+  comboModal.classList.add("open");
+  comboModal.setAttribute("aria-hidden", "false");
+}
+
+function closeComboModal() {
+  if (!comboModal) return;
+  state.activeComboId = null;
+  comboModal.classList.remove("open");
+  comboModal.setAttribute("aria-hidden", "true");
+  comboModalBody.innerHTML = "";
+}
+
+function confirmComboModal() {
+  if (!state.activeComboId) return;
+  const combo = comboById(state.activeComboId);
+  if (!combo) return;
+  const ok = applyCombo(combo);
+  if (ok) closeComboModal();
 }
 
 function addToCart(menuItemId, options = {}) {
@@ -466,6 +505,7 @@ function renderCart() {
   state.cart.forEach((line) => {
     const item = byId(line.menu_item_id);
     if (!item) return;
+
     const lineTotal = item.price * line.quantity;
     total += lineTotal;
 
@@ -556,8 +596,8 @@ function summarizeDiff(diff) {
 async function fetchMenu() {
   const res = await Auth.authFetch("/api/menu/items");
   if (!res.ok) throw new Error(await Auth.readErrorMessage(res));
-  const rawRows = await res.json();
-  state.menu = sortMenu(rawRows.map(normalizeMenuItem));
+  const rows = await res.json();
+  state.menu = sortMenu(rows.map(normalizeMenuItem));
   state.menuById = new Map(state.menu.map((item) => [item.id, item]));
   renderCategoryBar();
   renderMenu();
@@ -566,8 +606,7 @@ async function fetchMenu() {
 async function fetchCombos() {
   const res = await Auth.authFetch("/api/menu/combos");
   if (!res.ok) throw new Error(await Auth.readErrorMessage(res));
-  const rows = await res.json();
-  state.combos = rows || [];
+  state.combos = await res.json();
   renderComboQuick();
 }
 
@@ -653,10 +692,33 @@ function setupWebsocket() {
   });
 }
 
+function setupComboModalEvents() {
+  if (!comboModal) return;
+
+  comboModalCloseBtn?.addEventListener("click", closeComboModal);
+  comboModalCancelBtn?.addEventListener("click", closeComboModal);
+  comboModalConfirmBtn?.addEventListener("click", confirmComboModal);
+
+  comboModal.addEventListener("click", (evt) => {
+    const target = evt.target;
+    if (!(target instanceof HTMLElement)) return;
+    if (target.dataset.closeComboModal === "1") {
+      closeComboModal();
+    }
+  });
+
+  document.addEventListener("keydown", (evt) => {
+    if (evt.key === "Escape" && comboModal.classList.contains("open")) {
+      closeComboModal();
+    }
+  });
+}
+
 submitOrderBtn.addEventListener("click", submitOrder);
 
 async function bootstrap() {
   await Auth.ensureAuth(["staff", "manager", "owner"]);
+  setupComboModalEvents();
   await Promise.all([fetchMenu(), fetchCombos(), fetchRecentOrders()]);
   renderCart();
   setupWebsocket();

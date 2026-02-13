@@ -294,6 +294,113 @@ body::before {
   box-shadow: 0 8px 16px rgba(120, 70, 20, 0.25);
 }
 
+.combo-trigger-btn {
+  width: 100%;
+  background: linear-gradient(130deg, #5ac0f0, #4499d6);
+  color: #041826;
+  box-shadow: 0 8px 16px rgba(19, 69, 104, 0.24);
+}
+
+.combo-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: none;
+}
+
+.combo-modal.open {
+  display: block;
+}
+
+.combo-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(6, 12, 18, 0.65);
+  backdrop-filter: blur(2px);
+}
+
+.combo-modal-panel {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: min(620px, calc(100vw - 24px));
+  max-height: calc(100vh - 24px);
+  max-height: calc(100dvh - 24px);
+  overflow: auto;
+  border: 1px solid rgba(171, 209, 228, 0.35);
+  border-radius: 14px;
+  background: linear-gradient(160deg, rgba(9, 24, 34, 0.97), rgba(8, 18, 27, 0.97));
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.35);
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+}
+
+.combo-modal-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px 10px;
+  border-bottom: 1px solid rgba(171, 209, 228, 0.24);
+}
+
+.combo-modal-head h3 {
+  margin: 0;
+  font-size: var(--text-md);
+  color: #ddf0ff;
+}
+
+.combo-modal-close {
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  border: 1px solid rgba(170, 207, 227, 0.3);
+  background: rgba(14, 32, 44, 0.82);
+  color: #cfe8f7;
+  box-shadow: none;
+  font-size: 18px;
+  line-height: 1;
+  padding: 0;
+}
+
+.combo-modal-close:hover {
+  transform: none;
+  filter: none;
+  background: rgba(20, 42, 56, 0.9);
+}
+
+.combo-modal-body {
+  padding: 12px 14px;
+  display: grid;
+  gap: 10px;
+}
+
+.combo-modal-foot {
+  border-top: 1px solid rgba(171, 209, 228, 0.24);
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 10px 14px 12px;
+}
+
+.combo-modal-cancel {
+  background: rgba(31, 53, 67, 0.9);
+  color: #d6e8f5;
+  box-shadow: none;
+}
+
+.combo-modal-cancel:hover {
+  transform: none;
+  filter: none;
+  background: rgba(38, 66, 83, 0.94);
+}
+
+.combo-modal-confirm {
+  background: linear-gradient(130deg, #f6b35c, #ee9251);
+  color: #251006;
+}
+
 .menu-category-bar {
   display: flex;
   flex-wrap: wrap;

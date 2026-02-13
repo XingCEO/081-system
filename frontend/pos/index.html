@@ -81,6 +81,21 @@
     </section>
   </main>
 
+  <div id="comboModal" class="combo-modal" aria-hidden="true">
+    <div class="combo-modal-backdrop" data-close-combo-modal="1"></div>
+    <section class="combo-modal-panel" role="dialog" aria-modal="true" aria-labelledby="comboModalTitle">
+      <header class="combo-modal-head">
+        <h3 id="comboModalTitle">套餐選擇</h3>
+        <button id="comboModalClose" class="combo-modal-close" type="button" aria-label="關閉套餐視窗">×</button>
+      </header>
+      <div id="comboModalBody" class="combo-modal-body"></div>
+      <footer class="combo-modal-foot">
+        <button id="comboModalCancel" class="combo-modal-cancel" type="button">取消</button>
+        <button id="comboModalConfirm" class="combo-modal-confirm" type="button">加入套餐</button>
+      </footer>
+    </section>
+  </div>
+
   <script src="/shared/auth.js"></script>
   <script src="/pos/app.js"></script>
 </body>
