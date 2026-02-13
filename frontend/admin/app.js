@@ -16,6 +16,41 @@ function formatMoney(value) {
   return fmt.format(Number(value || 0));
 }
 
+function calcScrollState(container) {
+  return {
+    top: container.scrollTop,
+    height: container.scrollHeight,
+    nearTop: container.scrollTop <= 24,
+  };
+}
+
+function restoreScrollState(container, prev) {
+  if (!prev || prev.nearTop) return;
+  const delta = container.scrollHeight - prev.height;
+  container.scrollTop = Math.max(0, prev.top + delta);
+}
+
+function renderListStable({ container, signature, rows, emptyText, renderRow }) {
+  if (container.dataset.signature === signature) return;
+  const scrollState = calcScrollState(container);
+
+  container.innerHTML = "";
+  if (!rows.length) {
+    container.innerHTML = `<li>${emptyText}</li>`;
+    container.dataset.signature = signature;
+    restoreScrollState(container, scrollState);
+    return;
+  }
+
+  const fragment = document.createDocumentFragment();
+  rows.forEach((row) => {
+    fragment.appendChild(renderRow(row));
+  });
+  container.appendChild(fragment);
+  container.dataset.signature = signature;
+  restoreScrollState(container, scrollState);
+}
+
 async function fetchIngredients() {
   const res = await Auth.authFetch("/api/inventory/ingredients");
   if (!res.ok) throw new Error(await Auth.readErrorMessage(res));
@@ -74,25 +109,35 @@ async function fetchOverview() {
   avgTicket.textContent = `$${formatMoney(data.average_ticket)}`;
   inventoryValue.textContent = `$${formatMoney(data.inventory_value)}`;
 
-  topItems.innerHTML = "";
-  data.top_items.forEach((item) => {
-    const li = document.createElement("li");
-    li.textContent = `${item.menu_item_name}：${item.quantity} 份 / $${formatMoney(item.revenue)}`;
-    topItems.appendChild(li);
+  const topSignature = data.top_items
+    .map((item) => `${item.menu_item_name}:${item.quantity}:${item.revenue}`)
+    .join("|");
+  renderListStable({
+    container: topItems,
+    signature: topSignature,
+    rows: data.top_items,
+    emptyText: "目前沒有資料",
+    renderRow: (item) => {
+      const li = document.createElement("li");
+      li.textContent = `${item.menu_item_name}：${item.quantity} 份 / $${formatMoney(item.revenue)}`;
+      return li;
+    },
   });
-  if (!data.top_items.length) {
-    topItems.innerHTML = "<li>目前沒有資料</li>";
-  }
 
-  lowStock.innerHTML = "";
-  data.low_stock.forEach((item) => {
-    const li = document.createElement("li");
-    li.textContent = `${item.ingredient_name}：${formatMoney(item.current_stock)} ${item.unit}（門檻 ${formatMoney(item.reorder_level)}）`;
-    lowStock.appendChild(li);
+  const lowStockSignature = data.low_stock
+    .map((item) => `${item.ingredient_name}:${item.current_stock}:${item.reorder_level}`)
+    .join("|");
+  renderListStable({
+    container: lowStock,
+    signature: lowStockSignature,
+    rows: data.low_stock,
+    emptyText: "目前沒有低庫存項目",
+    renderRow: (item) => {
+      const li = document.createElement("li");
+      li.textContent = `${item.ingredient_name}：${formatMoney(item.current_stock)} ${item.unit}（門檻 ${formatMoney(item.reorder_level)}）`;
+      return li;
+    },
   });
-  if (!data.low_stock.length) {
-    lowStock.innerHTML = "<li>目前沒有低庫存項目</li>";
-  }
 }
 
 function formatAuditPayload(payload) {
@@ -126,23 +171,27 @@ async function fetchAuditLogs() {
   if (!res.ok) throw new Error(await Auth.readErrorMessage(res));
 
   const rows = await res.json();
-  auditList.innerHTML = "";
+  const signature = rows
+    .map((row) => `${row.id}:${row.action}:${row.entity_type}:${row.entity_id || ""}:${row.created_at}`)
+    .join("|");
 
-  rows.forEach((row) => {
-    const li = document.createElement("li");
-    const payloadText = formatAuditPayload(row.payload);
-    li.innerHTML = `
-      <div><strong>${auditActionLabel(row.action)}</strong> | ${row.entity_type}${row.entity_id ? `#${row.entity_id}` : ""}</div>
-      <div>${row.actor_username || "系統"}（${row.actor_role || "未知角色"}）</div>
-      <div>${new Date(row.created_at).toLocaleString("zh-TW")}</div>
-      ${payloadText ? `<small>${payloadText}</small>` : ""}
-    `;
-    auditList.appendChild(li);
+  renderListStable({
+    container: auditList,
+    signature,
+    rows,
+    emptyText: "目前沒有稽核紀錄",
+    renderRow: (row) => {
+      const li = document.createElement("li");
+      const payloadText = formatAuditPayload(row.payload);
+      li.innerHTML = `
+        <div><strong>${auditActionLabel(row.action)}</strong> | ${row.entity_type}${row.entity_id ? `#${row.entity_id}` : ""}</div>
+        <div>${row.actor_username || "系統"}（${row.actor_role || "未知角色"}）</div>
+        <div>${new Date(row.created_at).toLocaleString("zh-TW")}</div>
+        ${payloadText ? `<small>${payloadText}</small>` : ""}
+      `;
+      return li;
+    },
   });
-
-  if (!rows.length) {
-    auditList.innerHTML = "<li>目前沒有稽核紀錄</li>";
-  }
 }
 
 movementForm.addEventListener("submit", submitMovement);

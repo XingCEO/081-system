@@ -48,6 +48,11 @@ function formatMoney(value) {
 
 function renderMenu() {
   menuGrid.innerHTML = "";
+  if (!state.menu.length) {
+    menuGrid.innerHTML = '<div class="menu-empty">目前沒有可販售品項。</div>';
+    return;
+  }
+
   state.menu.forEach((item) => {
     const card = document.createElement("div");
     card.className = "menu-item";
@@ -98,12 +103,16 @@ function renderCart() {
     const li = document.createElement("li");
     li.className = "cart-line";
     li.innerHTML = `
-      <strong class="cart-line-name">${item.name}</strong>
-      <span class="cart-line-qty">數量 x${line.quantity}</span>
-      <span class="cart-line-total">$${formatMoney(lineTotal)}</span>
-      <div class="cart-line-actions">
-        <button data-op="plus" type="button" aria-label="增加數量">+</button>
-        <button data-op="minus" type="button" aria-label="減少數量">-</button>
+      <div class="cart-line-main">
+        <strong class="cart-line-name">${item.name}</strong>
+        <span class="cart-line-total">$${formatMoney(lineTotal)}</span>
+      </div>
+      <div class="cart-line-sub">
+        <span class="cart-line-qty">數量 x${line.quantity}</span>
+        <div class="cart-line-actions">
+          <button data-op="plus" type="button" aria-label="增加數量">＋</button>
+          <button data-op="minus" type="button" aria-label="減少數量">－</button>
+        </div>
       </div>
     `;
     li.querySelector('[data-op="plus"]').addEventListener("click", () => updateQty(line.menu_item_id, 1));

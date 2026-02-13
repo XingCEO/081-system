@@ -44,6 +44,19 @@ const WAIT_RULES = {
 
 let lowStockSignature = "";
 
+function captureScrollState(container) {
+  return {
+    top: container.scrollTop,
+    height: container.scrollHeight,
+  };
+}
+
+function restoreScrollState(container, prev) {
+  if (!prev || prev.top <= 0) return;
+  const delta = container.scrollHeight - prev.height;
+  container.scrollTop = Math.max(0, prev.top + delta);
+}
+
 function escapeHtml(value) {
   return String(value || "")
     .replaceAll("&", "&amp;")
@@ -169,6 +182,10 @@ function markAmended(orderId) {
 }
 
 function render(orders) {
+  const pendingState = captureScrollState(pendingCol);
+  const preparingState = captureScrollState(preparingCol);
+  const readyState = captureScrollState(readyCol);
+
   pendingCol.innerHTML = "";
   preparingCol.innerHTML = "";
   readyCol.innerHTML = "";
@@ -190,6 +207,10 @@ function render(orders) {
   renderLane(groups.pending, pendingCol, "pending");
   renderLane(groups.preparing, preparingCol, "preparing");
   renderLane(groups.ready, readyCol, "ready");
+
+  restoreScrollState(pendingCol, pendingState);
+  restoreScrollState(preparingCol, preparingState);
+  restoreScrollState(readyCol, readyState);
 }
 
 function renderLane(rows, container, status) {
@@ -209,6 +230,8 @@ function renderLane(rows, container, status) {
 
     const card = document.createElement("article");
     card.className = `order${amendedClass}`;
+    card.dataset.status = order.status;
+    card.dataset.createdAt = order.created_at;
     card.innerHTML = `
       <div class="order-head">
         <div class="order-id">#${escapeHtml(order.order_number)}</div>
@@ -242,6 +265,21 @@ function renderLane(rows, container, status) {
     }
 
     container.appendChild(card);
+  });
+}
+
+function refreshTimers() {
+  const cards = document.querySelectorAll(".order");
+  cards.forEach((card) => {
+    const status = card.dataset.status || "";
+    const createdAt = card.dataset.createdAt || "";
+    if (!status || !createdAt) return;
+    const timer = card.querySelector(".timer");
+    if (!timer) return;
+    const minutes = waitMinutes(createdAt);
+    const level = waitLevel(status, minutes);
+    timer.className = `timer ${level}`.trim();
+    timer.textContent = `等待 ${waitLabel(minutes)}`;
   });
 }
 
@@ -335,9 +373,10 @@ async function bootstrap() {
   await Auth.ensureAuth(["kitchen", "manager", "owner"]);
   await Promise.all([fetchOrders(), fetchLowStock()]);
   renderAlerts();
+  refreshTimers();
   setupWebsocket();
   setInterval(fetchOrders, 30000);
-  setInterval(() => render(state.orders), 15000);
+  setInterval(refreshTimers, 15000);
 }
 
 bootstrap().catch((err) => {
