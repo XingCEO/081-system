@@ -3,20 +3,20 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="早餐店智慧系統 POS：快速點餐、送單與修單。" />
+  <meta name="description" content="青青草原廚房 POS 點餐系統：完整菜單、套餐快速加入與即時訂單。" />
   <link rel="canonical" href="https://081-system.zeabur.app/pos" />
   <meta property="og:type" content="website" />
-  <meta property="og:site_name" content="早餐店智慧系統" />
+  <meta property="og:site_name" content="青青草原廚房" />
   <meta property="og:url" content="https://081-system.zeabur.app/pos" />
-  <meta property="og:title" content="前台點餐 POS｜早餐店智慧系統" />
-  <meta property="og:description" content="快速點餐、送單與修單。" />
+  <meta property="og:title" content="青青草原廚房 POS" />
+  <meta property="og:description" content="完整菜單分類、套餐快捷加入、即時訂單狀態。" />
   <meta property="og:image" content="https://081-system.zeabur.app/assets/og-cover.png" />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="前台點餐 POS｜早餐店智慧系統" />
-  <meta name="twitter:description" content="快速點餐、送單與修單。" />
+  <meta name="twitter:title" content="青青草原廚房 POS" />
+  <meta name="twitter:description" content="完整菜單分類、套餐快捷加入、即時訂單狀態。" />
   <meta name="twitter:image" content="https://081-system.zeabur.app/assets/og-cover.png" />
   <link rel="icon" type="image/x-icon" href="/assets/favicon.ico" />
-  <title>前台點餐 POS</title>
+  <title>青青草原廚房 POS</title>
   <link rel="stylesheet" href="/shared/theme.css" />
   <link rel="stylesheet" href="/pos/styles.css" />
 </head>
@@ -27,12 +27,12 @@
   <header class="topbar">
     <div>
       <p class="eyebrow">Front Counter Console</p>
-      <h1>前台點餐 POS</h1>
-      <p class="lead">快速開單、即時送廚房、現場修單與追蹤訂單狀態。</p>
+      <h1>青青草原廚房 POS</h1>
+      <p class="lead">完整菜單分類、套餐快捷加入、即時訂單同步。</p>
     </div>
     <div class="topbar-actions">
       <a href="/">回首頁</a>
-      <span class="hint">可用角色：櫃台 / 店長 / 老闆</span>
+      <span class="hint">角色：店員 / 經理 / 老闆</span>
     </div>
   </header>
 
@@ -40,14 +40,16 @@
     <section class="panel menu">
       <div class="panel-head">
         <h2>菜單</h2>
-        <span class="sub">點選品項加入訂單</span>
+        <span class="sub">可依分類快速篩選</span>
       </div>
+      <div id="comboQuickSection" class="combo-quick"></div>
+      <div id="menuCategoryBar" class="menu-category-bar"></div>
       <div id="menuGrid" class="menu-grid"></div>
     </section>
 
     <section class="panel cart">
       <div class="panel-head">
-        <h2>本次訂單</h2>
+        <h2>目前訂單</h2>
       </div>
 
       <label class="field">
@@ -72,8 +74,8 @@
 
     <section class="panel recent">
       <div class="panel-head">
-        <h2>近期訂單</h2>
-        <span class="sub">系統自動更新</span>
+        <h2>最近訂單</h2>
+        <span class="sub">可直接套用目前購物車修改</span>
       </div>
       <div id="orders" class="orders"></div>
     </section>
