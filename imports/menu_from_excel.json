@@ -1,97 +1,97 @@
 {
   "menu_items": [
     {
-      "name": "松子粒(素)",
+      "name": "[PASTA] 松子粒(素)",
       "price": 125.0,
       "is_active": true
     },
     {
-      "name": "菇菇(素)",
+      "name": "[PASTA] 菇菇(素)",
       "price": 145.0,
       "is_active": true
     },
     {
-      "name": "[PASTA_RICE] 100%黑豬肉",
+      "name": "[PASTA] 100%黑豬肉",
       "price": 145.0,
       "is_active": true
     },
     {
-      "name": "100%菲瑞牛",
+      "name": "[PASTA] 100%菲瑞牛",
       "price": 145.0,
       "is_active": true
     },
     {
-      "name": "花蛤",
+      "name": "[PASTA] 花蛤",
       "price": 150.0,
       "is_active": true
     },
     {
-      "name": "[PASTA_RICE] 100%炸雞條",
+      "name": "[PASTA] 100%炸雞條",
       "price": 150.0,
       "is_active": true
     },
     {
-      "name": "[PASTA_RICE] 100%醬燒雞腿",
+      "name": "[PASTA] 100%醬燒雞腿",
       "price": 160.0,
       "is_active": true
     },
     {
-      "name": "[PASTA_RICE] 100%舒肥雞胸",
+      "name": "[PASTA] 100%舒肥雞胸",
       "price": 160.0,
       "is_active": true
     },
     {
-      "name": "燴飯 黑豬醬",
+      "name": "[RICE_STEW] 黑豬醬",
       "price": 90.0,
       "is_active": true
     },
     {
-      "name": "燴飯 菇菇(蛋素)",
+      "name": "[RICE_STEW] 菇菇(蛋素)",
       "price": 90.0,
       "is_active": true
     },
     {
-      "name": "醬汁 杏鮑菇菇(素)",
+      "name": "[RICE_SAUCE] 杏鮑菇菇(素)",
       "price": 90.0,
       "is_active": true
     },
     {
-      "name": "醬汁 100%梅花豬",
+      "name": "[RICE_SAUCE] 100%梅花豬",
       "price": 90.0,
       "is_active": true
     },
     {
-      "name": "醬汁 100%炸雞條",
+      "name": "[RICE_SAUCE] 100%炸雞條",
       "price": 95.0,
       "is_active": true
     },
     {
-      "name": "醬汁 100%菲瑞牛飯",
+      "name": "[RICE_SAUCE] 100%菲瑞牛飯",
       "price": 105.0,
       "is_active": true
     },
     {
-      "name": "醬汁 100%醬燒雞腿",
+      "name": "[RICE_SAUCE] 100%醬燒雞腿",
       "price": 135.0,
       "is_active": true
     },
     {
-      "name": "醬汁 100%舒肥雞胸",
+      "name": "[RICE_SAUCE] 100%舒肥雞胸",
       "price": 150.0,
       "is_active": true
     },
     {
-      "name": "丼飯 洋蔥醬燒豬",
+      "name": "[RICE_DON] 洋蔥醬燒豬",
       "price": 115.0,
       "is_active": true
     },
     {
-      "name": "丼飯 洋蔥醬燒牛肋條",
+      "name": "[RICE_DON] 洋蔥醬燒牛肋條",
       "price": 135.0,
       "is_active": true
     },
     {
-      "name": "100%黑胡椒",
+      "name": "[UDON] 100%黑胡椒",
       "price": 90.0,
       "is_active": true
     },
@@ -106,17 +106,17 @@
       "is_active": true
     },
     {
-      "name": "黑豬肉黑胡椒",
+      "name": "[UDON] 黑豬肉黑胡椒",
       "price": 110.0,
       "is_active": true
     },
     {
-      "name": "杏鮑菇黑胡椒醬",
+      "name": "[UDON] 杏鮑菇黑胡椒醬",
       "price": 110.0,
       "is_active": true
     },
     {
-      "name": "原味(素)",
+      "name": "[WRAP] 原味(素)",
       "price": 50.0,
       "is_active": true
     },
@@ -146,7 +146,7 @@
       "is_active": true
     },
     {
-      "name": "鮪魚玉米大板燒",
+      "name": "[WRAP] 鮪魚玉米大板燒",
       "price": 80.0,
       "is_active": true
     },
@@ -161,7 +161,7 @@
       "is_active": true
     },
     {
-      "name": "鮪魚玉米",
+      "name": "[TOAST_EGG] 鮪魚玉米",
       "price": 70.0,
       "is_active": true
     },
@@ -181,97 +181,97 @@
       "is_active": true
     },
     {
-      "name": "炸雞條",
+      "name": "[TOAST_EGG] 炸雞條",
       "price": 85.0,
       "is_active": true
     },
     {
-      "name": "舒肥雞胸",
+      "name": "[TOAST_EGG] 舒肥雞胸",
       "price": 110.0,
       "is_active": true
     },
     {
-      "name": "蘿蔔糕X2+煎蛋",
+      "name": "[TURNIP] 蘿蔔糕X2+煎蛋",
       "price": 50.0,
       "is_active": true
     },
     {
-      "name": "梅花豬蘿蔔糕(蛋)",
+      "name": "[TURNIP] 梅花豬蘿蔔糕(蛋)",
       "price": 85.0,
       "is_active": true
     },
     {
-      "name": "菲瑞牛蘿蔔糕(蛋)",
+      "name": "[TURNIP] 菲瑞牛蘿蔔糕(蛋)",
       "price": 90.0,
       "is_active": true
     },
     {
-      "name": "醬燒雞腿蘿蔔糕(蛋)",
+      "name": "[TURNIP] 醬燒雞腿蘿蔔糕(蛋)",
       "price": 115.0,
       "is_active": true
     },
     {
-      "name": "舒肥雞胸蘿蔔糕(蛋)",
+      "name": "[TURNIP] 舒肥雞胸蘿蔔糕(蛋)",
       "price": 120.0,
       "is_active": true
     },
     {
-      "name": "菲瑞牛(蛋)",
+      "name": "[SALAD] 菲瑞牛(蛋)",
       "price": 160.0,
       "is_active": true
     },
     {
-      "name": "醬燒雞腿(蛋)",
+      "name": "[SALAD] 醬燒雞腿(蛋)",
       "price": 165.0,
       "is_active": true
     },
     {
-      "name": "舒肥雞胸(蛋)",
+      "name": "[SALAD] 舒肥雞胸(蛋)",
       "price": 170.0,
       "is_active": true
     },
     {
-      "name": "吉比花生醬(蛋奶素)",
+      "name": "[JAM_TOAST] 吉比花生醬(蛋奶素)",
       "price": 45.0,
       "is_active": true
     },
     {
-      "name": "綜合堅果醬(蛋奶素)",
+      "name": "[JAM_TOAST] 綜合堅果醬(蛋奶素)",
       "price": 50.0,
       "is_active": true
     },
     {
-      "name": "荷包蛋",
+      "name": "[SNACK] 荷包蛋",
       "price": 15.0,
       "is_active": true
     },
     {
-      "name": "薯餅一片(素)",
+      "name": "[SNACK] 薯餅一片(素)",
       "price": 25.0,
       "is_active": true
     },
     {
-      "name": "港式蘿蔔糕(葷)",
+      "name": "[SNACK] 港式蘿蔔糕(葷)",
       "price": 45.0,
       "is_active": true
     },
     {
-      "name": "地瓜(素)",
+      "name": "[SNACK] 地瓜(素)",
       "price": 45.0,
       "is_active": true
     },
     {
-      "name": "有機高麗菜沙拉",
+      "name": "[SNACK] 有機高麗菜沙拉",
       "price": 50.0,
       "is_active": true
     },
     {
-      "name": "花蛤湯",
+      "name": "[SNACK] 花蛤湯",
       "price": 50.0,
       "is_active": true
     },
     {
-      "name": "脆薯條",
+      "name": "[SNACK] 脆薯條",
       "price": 50.0,
       "is_active": true
     },
@@ -687,7 +687,7 @@
     }
   ],
   "recipes": {
-    "松子粒(素)": [
+    "[PASTA] 松子粒(素)": [
       "小玉米",
       "小黃瓜",
       "小蕃茄",
@@ -696,59 +696,59 @@
       "麵/飯",
       "松子粒"
     ],
-    "菇菇(素)": [
+    "[PASTA] 菇菇(素)": [
       "菇菇"
     ],
-    "[PASTA_RICE] 100%黑豬肉": [
+    "[PASTA] 100%黑豬肉": [
       "黑豬肉"
     ],
-    "100%菲瑞牛": [
+    "[PASTA] 100%菲瑞牛": [
       "菲瑞牛"
     ],
-    "花蛤": [
+    "[PASTA] 花蛤": [
       "花蛤"
     ],
-    "[PASTA_RICE] 100%炸雞條": [
+    "[PASTA] 100%炸雞條": [
       "炸雞條"
     ],
-    "[PASTA_RICE] 100%醬燒雞腿": [
+    "[PASTA] 100%醬燒雞腿": [
       "醬燒雞腿"
     ],
-    "[PASTA_RICE] 100%舒肥雞胸": [
+    "[PASTA] 100%舒肥雞胸": [
       "雞胸"
     ],
-    "燴飯 黑豬醬": [
+    "[RICE_STEW] 黑豬醬": [
       "黑豬肉"
     ],
-    "燴飯 菇菇(蛋素)": [
+    "[RICE_STEW] 菇菇(蛋素)": [
       "菇菇"
     ],
-    "醬汁 杏鮑菇菇(素)": [
+    "[RICE_SAUCE] 杏鮑菇菇(素)": [
       "菇菇",
       "醬油"
     ],
-    "醬汁 100%梅花豬": [
+    "[RICE_SAUCE] 100%梅花豬": [
       "梅花豬肉片"
     ],
-    "醬汁 100%炸雞條": [
+    "[RICE_SAUCE] 100%炸雞條": [
       "炸雞條"
     ],
-    "醬汁 100%菲瑞牛飯": [
+    "[RICE_SAUCE] 100%菲瑞牛飯": [
       "菲瑞牛肉片"
     ],
-    "醬汁 100%醬燒雞腿": [
+    "[RICE_SAUCE] 100%醬燒雞腿": [
       "柴魚雞腿"
     ],
-    "醬汁 100%舒肥雞胸": [
+    "[RICE_SAUCE] 100%舒肥雞胸": [
       "雞胸肉"
     ],
-    "丼飯 洋蔥醬燒豬": [
+    "[RICE_DON] 洋蔥醬燒豬": [
       "梅花丼醬"
     ],
-    "丼飯 洋蔥醬燒牛肋條": [
+    "[RICE_DON] 洋蔥醬燒牛肋條": [
       "牛肋丼醬"
     ],
-    "100%黑胡椒": [
+    "[UDON] 100%黑胡椒": [
       "小玉米",
       "小黃瓜",
       "小蕃茄",
@@ -764,15 +764,15 @@
     "[UDON] 100%黑豬肉": [
       "黑豬肉"
     ],
-    "黑豬肉黑胡椒": [
+    "[UDON] 黑豬肉黑胡椒": [
       "黑豬肉",
       "黑胡椒醬"
     ],
-    "杏鮑菇黑胡椒醬": [
+    "[UDON] 杏鮑菇黑胡椒醬": [
       "菇菇",
       "黑胡椒醬"
     ],
-    "原味(素)": [
+    "[WRAP] 原味(素)": [
       "蛋餅皮(2片)",
       "雞蛋(1個)"
     ],
@@ -791,7 +791,7 @@
     "[WRAP] 菲瑞牛": [
       "菲瑞牛肉片"
     ],
-    "鮪魚玉米大板燒": [
+    "[WRAP] 鮪魚玉米大板燒": [
       "鮪魚玉米沙拉"
     ],
     "[TOAST_EGG] 玉米(素)": [
@@ -803,7 +803,7 @@
     "[TOAST_EGG] 薯餅(素)": [
       "薯餅"
     ],
-    "鮪魚玉米": [
+    "[TOAST_EGG] 鮪魚玉米": [
       "鮪魚玉米沙拉"
     ],
     "[TOAST_EGG] 杏鮑菇(素)": [
@@ -815,29 +815,29 @@
     "[TOAST_EGG] 菲瑞牛": [
       "菲瑞牛肉片"
     ],
-    "炸雞條": [
+    "[TOAST_EGG] 炸雞條": [
       "雞條"
     ],
-    "舒肥雞胸": [
+    "[TOAST_EGG] 舒肥雞胸": [
       "雞胸肉"
     ],
-    "蘿蔔糕X2+煎蛋": [
+    "[TURNIP] 蘿蔔糕X2+煎蛋": [
       "蘿蔔糕(2片)",
       "雞蛋(1個)"
     ],
-    "梅花豬蘿蔔糕(蛋)": [
+    "[TURNIP] 梅花豬蘿蔔糕(蛋)": [
       "梅花豬肉片"
     ],
-    "菲瑞牛蘿蔔糕(蛋)": [
+    "[TURNIP] 菲瑞牛蘿蔔糕(蛋)": [
       "菲瑞牛肉片"
     ],
-    "醬燒雞腿蘿蔔糕(蛋)": [
+    "[TURNIP] 醬燒雞腿蘿蔔糕(蛋)": [
       "柴魚雞腿"
     ],
-    "舒肥雞胸蘿蔔糕(蛋)": [
+    "[TURNIP] 舒肥雞胸蘿蔔糕(蛋)": [
       "雞胸肉"
     ],
-    "菲瑞牛(蛋)": [
+    "[SALAD] 菲瑞牛(蛋)": [
       "小玉米",
       "小黃瓜",
       "小蕃茄",
@@ -847,38 +847,38 @@
       "雞蛋(1個)",
       "菲瑞牛肉片"
     ],
-    "醬燒雞腿(蛋)": [
+    "[SALAD] 醬燒雞腿(蛋)": [
       "柴魚雞腿"
     ],
-    "舒肥雞胸(蛋)": [
+    "[SALAD] 舒肥雞胸(蛋)": [
       "雞胸肉"
     ],
-    "吉比花生醬(蛋奶素)": [
+    "[JAM_TOAST] 吉比花生醬(蛋奶素)": [
       "吐司(2片)",
       "花生醬"
     ],
-    "綜合堅果醬(蛋奶素)": [
+    "[JAM_TOAST] 綜合堅果醬(蛋奶素)": [
       "堅果醬"
     ],
-    "荷包蛋": [
+    "[SNACK] 荷包蛋": [
       "雞蛋(1個)"
     ],
-    "薯餅一片(素)": [
+    "[SNACK] 薯餅一片(素)": [
       "薯餅"
     ],
-    "港式蘿蔔糕(葷)": [
+    "[SNACK] 港式蘿蔔糕(葷)": [
       "蘿蔔糕(2片)"
     ],
-    "地瓜(素)": [
+    "[SNACK] 地瓜(素)": [
       "地瓜"
     ],
-    "有機高麗菜沙拉": [
+    "[SNACK] 有機高麗菜沙拉": [
       "高麗菜罐(2罐)"
     ],
-    "花蛤湯": [
+    "[SNACK] 花蛤湯": [
       "花蛤"
     ],
-    "脆薯條": [
+    "[SNACK] 脆薯條": [
       "薯條"
     ],
     "[SNACK] 100%炸雞條": [

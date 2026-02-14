@@ -30,30 +30,26 @@ DEFAULT_BASE_URL = "http://127.0.0.1:8000"
 DEFAULT_USER = "manager1"
 DEFAULT_PASS = "manager1234"
 
-# Category -> group code (for disambiguation of duplicate names)
+# Category -> group code (used as [TAG] prefix in item names for frontend categorization)
 CATEGORY_GROUP = {
-    "有機藜麥燉飯/義大利麵": "PASTA_RICE",
+    "有機藜麥燉飯/義大利麵": "PASTA",
     "有機藜麥白飯(燴飯)": "RICE_STEW",
     "有機藜麥白飯(醬汁飯)": "RICE_SAUCE",
     "有機藜麥白飯(丼飯)": "RICE_DON",
     "鍋炒烏龍麵": "UDON",
     "虎皮蛋捲餅": "WRAP",
     "總匯吐司蛋": "TOAST_EGG",
-    "蘿蔔糕特餐": "TURNIP_CAKE",
+    "蘿蔔糕特餐": "TURNIP",
     "有機高麗菜綜合沙拉": "SALAD",
     "果醬吐司(2片)": "JAM_TOAST",
     "點心": "SNACK",
-    "茶類/奶茶": "DRINK_TEA",
-    "冬瓜飲/果汁": "DRINK_JUICE",
-    "咖啡/熱飲": "DRINK_COFFEE",
+    "茶類/奶茶": "DRINK",
+    "冬瓜飲/果汁": "DRINK",
+    "咖啡/熱飲": "DRINK",
 }
 
-# Category short prefix for display names (燴飯, 醬汁, 丼飯)
-CATEGORY_PREFIX = {
-    "有機藜麥白飯(燴飯)": "燴飯",
-    "有機藜麥白飯(醬汁飯)": "醬汁",
-    "有機藜麥白飯(丼飯)": "丼飯",
-}
+# No longer needed — all food items get [TAG] prefix now
+# CATEGORY_PREFIX removed
 
 # Drink categories that need (M)/(L) size suffixes
 DRINK_CATEGORIES = {"茶類/奶茶", "冬瓜飲/果汁", "咖啡/熱飲"}
@@ -175,10 +171,9 @@ def parse_excel(xlsx_path: str) -> dict:
                 menu_items.append({"name": name, "price": item["price_l"], "is_active": True})
                 recipes[name] = item["ingredients"]
         else:
-            # Food items
-            if cat in CATEGORY_PREFIX:
-                name = f"{CATEGORY_PREFIX[cat]} {item['raw_name']}"
-            elif item["raw_name"] in duplicates:
+            # Food items — always use [TAG] prefix for frontend categorization
+            group = CATEGORY_GROUP.get(cat, "")
+            if group:
                 name = f"[{group}] {item['raw_name']}"
             else:
                 name = item["raw_name"]
@@ -277,26 +272,67 @@ def login(base_url: str, username: str, password: str) -> str:
 # ---------------------------------------------------------------------------
 # Import logic
 # ---------------------------------------------------------------------------
-def sync_menu_items(base_url: str, token: str, items: list[dict], dry_run: bool) -> dict[str, int]:
-    """Sync menu items, return name->id mapping."""
-    existing = api_call("GET", f"{base_url}/api/menu/items?active_only=false", token) or []
-    existing_map = {item["name"]: item for item in existing}
-    name_to_id = {item["name"]: item["id"] for item in existing}
+def _strip_tag(name: str) -> str:
+    """Remove [TAG] prefix from a name for fuzzy matching."""
+    m = re.match(r"^\[([A-Z_]+)\]\s*(.+)$", name)
+    return m.group(2) if m else name
 
-    created = updated = skipped = 0
+
+def sync_menu_items(base_url: str, token: str, items: list[dict], dry_run: bool) -> dict[str, int]:
+    """Sync menu items, return name->id mapping.
+
+    Matches by exact name first, then by stripped name (ignoring [TAG] prefix)
+    to handle migration from untagged to tagged names.
+    """
+    existing = api_call("GET", f"{base_url}/api/menu/items?active_only=false", token) or []
+    existing_by_name = {item["name"]: item for item in existing}
+    # Build a lookup by stripped name for fuzzy matching
+    existing_by_stripped = {}
+    for item in existing:
+        stripped = _strip_tag(item["name"])
+        existing_by_stripped.setdefault(stripped, []).append(item)
+
+    name_to_id: dict[str, int] = {}
+    matched_ids: set[int] = set()
+    created = updated = renamed = skipped = 0
+
     for item in items:
         name = item["name"]
-        if name in existing_map:
-            ex = existing_map[name]
-            if abs(ex["price"] - item["price"]) > 0.01 or ex["is_active"] != item["is_active"]:
-                print(f"  UPDATE: {name} (${ex['price']}→${item['price']})")
+        stripped = _strip_tag(name)
+
+        # Try exact match first
+        ex = existing_by_name.get(name)
+
+        # If no exact match, try matching by stripped name
+        if not ex:
+            candidates = existing_by_stripped.get(stripped, [])
+            # Pick the candidate whose price is closest (handles duplicates)
+            for c in candidates:
+                if c["id"] not in matched_ids:
+                    ex = c
+                    break
+
+        if ex:
+            matched_ids.add(ex["id"])
+            changes = {}
+            if ex["name"] != name:
+                changes["name"] = name
+            if abs(ex["price"] - item["price"]) > 0.01:
+                changes["price"] = item["price"]
+            if ex["is_active"] != item["is_active"]:
+                changes["is_active"] = item["is_active"]
+
+            if changes:
+                action = "RENAME+UPDATE" if "name" in changes else "UPDATE"
+                print(f"  {action}: {ex['name']} -> {name} ${item['price']}")
                 if not dry_run:
-                    result = api_call("PUT", f"{base_url}/api/menu/items/{ex['id']}", token, {
-                        "price": item["price"], "is_active": item["is_active"],
-                    })
+                    result = api_call("PUT", f"{base_url}/api/menu/items/{ex['id']}", token, changes)
                     if result:
                         name_to_id[name] = result["id"]
-                updated += 1
+                if "name" in changes:
+                    renamed += 1
+                else:
+                    updated += 1
             else:
                 skipped += 1
                 name_to_id[name] = ex["id"]
@@ -308,7 +344,17 @@ def sync_menu_items(base_url: str, token: str, items: list[dict], dry_run: bool)
                     name_to_id[name] = result["id"]
             created += 1
 
-    print(f"  菜單: {created} 新增, {updated} 更新, {skipped} 不變")
+    # Deactivate old items not in the new list
+    deactivated = 0
+    for ex in existing:
+        if ex["id"] not in matched_ids and ex["id"] not in name_to_id.values():
+            if ex["is_active"]:
+                print(f"  DEACTIVATE: {ex['name']}")
+                if not dry_run:
+                    api_call("PUT", f"{base_url}/api/menu/items/{ex['id']}", token, {"is_active": False})
+                deactivated += 1
+
+    print(f"  菜單: {created} 新增, {renamed} 改名, {updated} 更新, {skipped} 不變, {deactivated} 停用")
     return name_to_id
 
 

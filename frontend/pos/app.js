@@ -58,29 +58,40 @@ const PAYMENT_LABEL = {
 
 const CATEGORY_LABEL = {
   ALL: "全部",
-  DRINK: "飲料",
-  MAIN: "主餐",
-  RICE: "飯類",
-  TOAST: "吐司",
-  WRAP: "捲餅",
-  NOODLE: "麵食",
+  PASTA: "燉飯/義大利麵",
+  RICE_STEW: "燴飯",
+  RICE_SAUCE: "醬汁飯",
+  RICE_DON: "丼飯",
+  UDON: "烏龍麵",
+  WRAP: "蛋捲餅",
+  TOAST_EGG: "總匯吐司蛋",
+  JAM_TOAST: "果醬吐司",
+  TURNIP: "蘿蔔糕",
   SALAD: "沙拉",
   SNACK: "點心",
+  DRINK: "飲料",
   OTHER: "其他",
 };
 
-const CATEGORY_ORDER = ["DRINK", "MAIN", "RICE", "TOAST", "WRAP", "NOODLE", "SALAD", "SNACK", "OTHER"];
+const CATEGORY_ORDER = [
+  "PASTA", "RICE_STEW", "RICE_SAUCE", "RICE_DON", "UDON",
+  "WRAP", "TOAST_EGG", "JAM_TOAST", "TURNIP", "SALAD", "SNACK", "DRINK", "OTHER",
+];
 const TAG_CATEGORY_MAP = {
-  DRINK: "DRINK",
-  PASTA_RICE: "MAIN",
-  RICE_SAUCE_DON: "RICE",
-  JAM_TOAST: "TOAST",
-  TOAST_EGG: "TOAST",
+  PASTA: "PASTA",
+  PASTA_RICE: "PASTA",
+  RICE_STEW: "RICE_STEW",
+  RICE_SAUCE: "RICE_SAUCE",
+  RICE_DON: "RICE_DON",
+  UDON: "UDON",
   WRAP: "WRAP",
-  UDON: "NOODLE",
+  TOAST_EGG: "TOAST_EGG",
+  JAM_TOAST: "JAM_TOAST",
+  TURNIP: "TURNIP",
+  TURNIP_CAKE: "TURNIP",
   SALAD: "SALAD",
   SNACK: "SNACK",
-  TURNIP_CAKE: "SNACK",
+  DRINK: "DRINK",
 };
 
 function escapeHtml(value) {
@@ -135,12 +146,18 @@ function mapTagToCategory(tag) {
 
 function detectCategory(name) {
   if (/\((M|L)\)\s*$/i.test(name)) return "DRINK";
-  if (/(紅茶|奶茶|咖啡|豆漿|果汁|冬瓜|拿鐵|美式|百香|鳳梨|檸檬|飲)/.test(name)) return "DRINK";
-  if (/(燉飯|義大利麵|丼飯|烏龍麵|飯|麵|醬汁)/.test(name)) return "MAIN";
-  if (/(吐司)/.test(name)) return "TOAST";
-  if (/(捲餅)/.test(name)) return "WRAP";
+  if (/(紅茶|奶茶|咖啡|豆漿|果汁|冬瓜|拿鐵|美式|百香|鳳梨|檸檬|飲|牛奶|洛神)/.test(name)) return "DRINK";
+  if (/(燉飯|義大利麵)/.test(name)) return "PASTA";
+  if (/^燴飯/.test(name)) return "RICE_STEW";
+  if (/^醬汁/.test(name)) return "RICE_SAUCE";
+  if (/^丼飯/.test(name)) return "RICE_DON";
+  if (/(烏龍麵)/.test(name)) return "UDON";
+  if (/(捲餅|大板燒)/.test(name)) return "WRAP";
+  if (/(果醬|堅果醬|花生醬)/.test(name) && /(吐司)/.test(name)) return "JAM_TOAST";
+  if (/(吐司)/.test(name)) return "TOAST_EGG";
+  if (/(蘿蔔糕)/.test(name)) return "TURNIP";
   if (/(沙拉)/.test(name)) return "SALAD";
-  if (/(點心|薯餅|脆薯|荷包蛋|花蛤湯|地瓜|蘿蔔糕|雞條)/.test(name)) return "SNACK";
+  if (/(薯餅|脆薯|荷包蛋|花蛤湯|地瓜|雞條|薯條)/.test(name)) return "SNACK";
   return "OTHER";
 }
 
