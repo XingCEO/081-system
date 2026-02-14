@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections import Counter
 from datetime import datetime, timezone
 from random import randint
 
@@ -7,8 +8,9 @@ from fastapi import HTTPException
 from sqlalchemy import select
 from sqlalchemy.orm import Session, joinedload
 
-from app.models import MenuItem, Order, OrderItem
+from app.models import ComboRule, MenuItem, Order, OrderItem
 from app.schemas import (
+    OrderComboCreate,
     OrderAmendRequest,
     OrderCreate,
     OrderDiffLine,
@@ -22,6 +24,110 @@ from app.services.inventory import (
     deduct_inventory_for_order,
     restore_inventory_for_cancelled_order,
 )
+
+
+def _load_active_menu_item(db: Session, menu_item_id: int) -> MenuItem:
+    menu_item = db.get(MenuItem, menu_item_id)
+    if not menu_item or not menu_item.is_active:
+        raise HTTPException(status_code=400, detail=f"Menu item {menu_item_id} unavailable")
+    return menu_item
+
+
+def _allocate_weighted_line_totals(
+    *,
+    total_amount: float,
+    weighted_keys: list[tuple[int, float]],
+) -> dict[int, float]:
+    if not weighted_keys:
+        return {}
+    base_sum = sum(weight for _, weight in weighted_keys)
+    if base_sum <= 0:
+        per_line = round(total_amount / len(weighted_keys), 2)
+        allocated = {key: per_line for key, _ in weighted_keys}
+    else:
+        allocated: dict[int, float] = {}
+        remaining = round(total_amount, 2)
+        for key, weight in weighted_keys[:-1]:
+            line_total = round(total_amount * (weight / base_sum), 2)
+            allocated[key] = line_total
+            remaining = round(remaining - line_total, 2)
+        allocated[weighted_keys[-1][0]] = remaining
+    return allocated
+
+
+def _build_combo_order_lines(db: Session, combo_input: OrderComboCreate) -> list[dict]:
+    combo = db.scalar(select(ComboRule).where(ComboRule.id == combo_input.combo_id))
+    if not combo or not combo.is_active:
+        raise HTTPException(status_code=400, detail=f"Combo rule {combo_input.combo_id} unavailable")
+
+    drink_ids = [int(item_id) for item_id in combo_input.drink_item_ids]
+    side_ids = [int(item_id) for item_id in combo_input.side_item_ids]
+
+    if len(drink_ids) != combo.drink_choice_count:
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                f"Combo {combo.code} requires {combo.drink_choice_count} drink selections, "
+                f"got {len(drink_ids)}"
+            ),
+        )
+    if len(side_ids) != combo.side_choice_count:
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                f"Combo {combo.code} requires {combo.side_choice_count} side selections, "
+                f"got {len(side_ids)}"
+            ),
+        )
+
+    eligible_drink_ids = {row.menu_item_id for row in combo.eligible_drinks}
+    invalid_drinks = sorted([item_id for item_id in drink_ids if item_id not in eligible_drink_ids])
+    if invalid_drinks:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Combo {combo.code} has invalid drink item ids: {invalid_drinks}",
+        )
+
+    component_ids = drink_ids + side_ids
+    if not component_ids:
+        raise HTTPException(status_code=400, detail=f"Combo {combo.code} has no selected items")
+
+    menu_items = db.scalars(select(MenuItem).where(MenuItem.id.in_(set(component_ids)))).all()
+    menu_by_id = {item.id: item for item in menu_items}
+    missing = sorted(set(component_ids) - set(menu_by_id.keys()))
+    if missing:
+        raise HTTPException(status_code=400, detail=f"Unknown menu item ids in combo {combo.code}: {missing}")
+    inactive = sorted(item.id for item in menu_items if not item.is_active)
+    if inactive:
+        raise HTTPException(status_code=400, detail=f"Inactive menu item ids in combo {combo.code}: {inactive}")
+
+    per_set_counts = Counter(component_ids)
+    line_counts = {item_id: count * combo_input.quantity for item_id, count in per_set_counts.items()}
+    weighted_keys = [
+        (item_id, menu_by_id[item_id].price * line_counts[item_id])
+        for item_id in line_counts.keys()
+    ]
+    line_totals = _allocate_weighted_line_totals(
+        total_amount=round(combo.bundle_price * combo_input.quantity, 2),
+        weighted_keys=weighted_keys,
+    )
+
+    lines: list[dict] = []
+    note = f"[COMBO:{combo.code}]"
+    for item_id, quantity in line_counts.items():
+        line_total = round(line_totals[item_id], 2)
+        unit_price = round(line_total / quantity, 2)
+        lines.append(
+            {
+                "menu_item_id": item_id,
+                "menu_item_name": menu_by_id[item_id].name,
+                "quantity": quantity,
+                "unit_price": unit_price,
+                "line_total": line_total,
+                "note": note,
+            },
+        )
+    return lines
 
 
 def generate_order_number() -> str:
@@ -175,27 +281,44 @@ def create_order(db: Session, payload: OrderCreate) -> tuple[Order, list[dict]]:
             payment_status=PaymentStatus.unpaid.value,
         )
 
-        total = 0.0
         db.add(order)
         db.flush()
 
+        lines: list[dict] = []
         for input_item in payload.items:
-            menu_item = db.get(MenuItem, input_item.menu_item_id)
-            if not menu_item or not menu_item.is_active:
-                raise HTTPException(status_code=400, detail=f"Menu item {input_item.menu_item_id} unavailable")
-
-            line_total = menu_item.price * input_item.quantity
-            total += line_total
-            order_item = OrderItem(
-                order_id=order.id,
-                menu_item_id=menu_item.id,
-                menu_item_name=menu_item.name,
-                quantity=input_item.quantity,
-                unit_price=menu_item.price,
-                line_total=line_total,
-                note=input_item.note,
+            menu_item = _load_active_menu_item(db, input_item.menu_item_id)
+            line_total = round(menu_item.price * input_item.quantity, 2)
+            lines.append(
+                {
+                    "menu_item_id": menu_item.id,
+                    "menu_item_name": menu_item.name,
+                    "quantity": input_item.quantity,
+                    "unit_price": menu_item.price,
+                    "line_total": line_total,
+                    "note": input_item.note,
+                },
             )
-            db.add(order_item)
+
+        for combo_input in payload.combos:
+            lines.extend(_build_combo_order_lines(db, combo_input))
+
+        if not lines:
+            raise HTTPException(status_code=400, detail="Order must include at least one item or combo")
+
+        total = 0.0
+        for line in lines:
+            total += line["line_total"]
+            db.add(
+                OrderItem(
+                    order_id=order.id,
+                    menu_item_id=line["menu_item_id"],
+                    menu_item_name=line["menu_item_name"],
+                    quantity=line["quantity"],
+                    unit_price=line["unit_price"],
+                    line_total=line["line_total"],
+                    note=line["note"],
+                ),
+            )
 
         order.total_amount = round(total, 2)
         db.flush()

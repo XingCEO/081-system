@@ -2,6 +2,7 @@ const state = {
   menu: [],
   menuById: new Map(),
   cart: [],
+  comboCart: [],
   orders: [],
   combos: [],
   comboDrafts: {},
@@ -324,10 +325,16 @@ function applyCombo(combo) {
     return false;
   }
 
-  const allIds = [...chosenDrinkIds, ...mappedSideIds];
-  allIds.forEach((menuItemId) => addToCart(menuItemId, { render: false }));
+  state.comboCart.push({
+    key: `${combo.id}-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+    combo_id: combo.id,
+    combo_name: combo.name,
+    bundle_price: Number(combo.bundle_price || 0),
+    drink_item_ids: [...chosenDrinkIds],
+    side_item_ids: [...mappedSideIds],
+  });
   renderCart();
-  messageEl.textContent = `已加入 ${combo.name}（${allIds.length} 項，單品計價）。`;
+  messageEl.textContent = `已加入 ${combo.name}（套餐價 $${formatMoney(combo.bundle_price)}）。`;
   return true;
 }
 
@@ -501,6 +508,11 @@ function addToCart(menuItemId, options = {}) {
   if (render) renderCart();
 }
 
+function removeComboFromCart(comboKey) {
+  state.comboCart = state.comboCart.filter((line) => line.key !== comboKey);
+  renderCart();
+}
+
 function updateQty(menuItemId, delta) {
   const line = state.cart.find((row) => row.menu_item_id === menuItemId);
   if (!line) return;
@@ -515,7 +527,7 @@ function renderCart() {
   cartList.innerHTML = "";
   let total = 0;
 
-  if (!state.cart.length) {
+  if (!state.cart.length && !state.comboCart.length) {
     cartList.innerHTML = '<li class="cart-empty">購物車目前是空的，請先加入品項。</li>';
   }
 
@@ -546,8 +558,39 @@ function renderCart() {
     cartList.appendChild(li);
   });
 
+  state.comboCart.forEach((line) => {
+    const drinkNames = line.drink_item_ids
+      .map((itemId) => byId(itemId)?.display_name || byId(itemId)?.name || `#${itemId}`)
+      .join(" / ");
+    const sideNames = line.side_item_ids
+      .map((itemId) => byId(itemId)?.display_name || byId(itemId)?.name || `#${itemId}`)
+      .join(" / ");
+    const detail = [drinkNames, sideNames].filter(Boolean).join(" + ");
+    const lineTotal = Number(line.bundle_price || 0);
+    total += lineTotal;
+
+    const li = document.createElement("li");
+    li.className = "cart-line";
+    li.innerHTML = `
+      <div class="cart-line-main">
+        <strong class="cart-line-name">${escapeHtml(line.combo_name)}（套餐）</strong>
+        <span class="cart-line-total">$${formatMoney(lineTotal)}</span>
+      </div>
+      <div class="cart-line-sub">
+        <span class="cart-line-qty">${escapeHtml(detail || "套餐內容")}</span>
+        <div class="cart-line-actions">
+          <button data-op="remove-combo" type="button" aria-label="刪除套餐">×</button>
+        </div>
+      </div>
+    `;
+    li
+      .querySelector('[data-op="remove-combo"]')
+      ?.addEventListener("click", () => removeComboFromCart(line.key));
+    cartList.appendChild(li);
+  });
+
   totalEl.textContent = formatMoney(total);
-  submitOrderBtn.disabled = state.cart.length === 0;
+  submitOrderBtn.disabled = state.cart.length === 0 && state.comboCart.length === 0;
   renderRecentOrders();
 }
 
@@ -586,7 +629,10 @@ function renderRecentOrders() {
     if (["pending", "preparing", "ready"].includes(order.status)) {
       const amendBtn = document.createElement("button");
       amendBtn.textContent = "用購物車修改";
-      amendBtn.disabled = state.cart.length === 0;
+      amendBtn.disabled = state.cart.length === 0 || state.comboCart.length > 0;
+      if (state.comboCart.length > 0) {
+        amendBtn.title = "套餐目前僅支援新下單，請先清空套餐購物車";
+      }
       amendBtn.addEventListener("click", () => amendOrder(order.id, order.order_number));
       actionWrap.appendChild(amendBtn);
     }
@@ -598,6 +644,14 @@ function buildCartItemsPayload() {
   return state.cart.map((line) => ({
     menu_item_id: line.menu_item_id,
     quantity: line.quantity,
+  }));
+}
+
+function buildComboPayload() {
+  return state.comboCart.map((line) => ({
+    combo_id: line.combo_id,
+    drink_item_ids: [...line.drink_item_ids],
+    side_item_ids: [...line.side_item_ids],
   }));
 }
 
@@ -635,8 +689,8 @@ async function fetchRecentOrders() {
 }
 
 async function submitOrder() {
-  if (!state.cart.length) return;
-  messageEl.textContent = "送單中...";
+  if (!state.cart.length && !state.comboCart.length) return;
+  messageEl.textContent = "送出中...";
   submitOrderBtn.disabled = true;
 
   try {
@@ -644,6 +698,7 @@ async function submitOrder() {
       source: sourceSelect.value,
       auto_pay: true,
       items: buildCartItemsPayload(),
+      combos: buildComboPayload(),
     };
     const res = await Auth.authFetch("/api/orders", {
       method: "POST",
@@ -655,22 +710,28 @@ async function submitOrder() {
     const data = await res.json();
     messageEl.textContent = `訂單建立成功：${data.order_number}`;
     state.cart = [];
+    state.comboCart = [];
     renderCart();
     await fetchRecentOrders();
   } catch (err) {
     messageEl.textContent = `送單失敗：${String(err.message || err)}`;
   } finally {
-    submitOrderBtn.disabled = state.cart.length === 0;
+    submitOrderBtn.disabled = state.cart.length === 0 && state.comboCart.length === 0;
   }
 }
 
 async function amendOrder(orderId, orderNumber) {
-  if (!state.cart.length) {
-    messageEl.textContent = "購物車是空的，無法覆蓋訂單。";
+  if (state.comboCart.length) {
+    messageEl.textContent = "套餐目前僅支援新下單，不支援直接套用到改單。";
     return;
   }
 
-  messageEl.textContent = `正在覆蓋訂單 ${orderNumber}...`;
+  if (!state.cart.length) {
+    messageEl.textContent = "購物車目前是空的，請先加入品項再改單。";
+    return;
+  }
+
+  messageEl.textContent = `正在修改訂單 ${orderNumber}...`;
   try {
     const res = await Auth.authFetch(`/api/orders/${orderId}/amend`, {
       method: "POST",
@@ -679,10 +740,10 @@ async function amendOrder(orderId, orderNumber) {
     });
     if (!res.ok) throw new Error(await Auth.readErrorMessage(res));
     const payload = await res.json();
-    messageEl.textContent = `覆蓋完成：${orderNumber}，${summarizeDiff(payload.diff)}`;
+    messageEl.textContent = `修改完成：${orderNumber}（${summarizeDiff(payload.diff)}）`;
     await fetchRecentOrders();
   } catch (err) {
-    messageEl.textContent = `覆蓋失敗：${String(err.message || err)}`;
+    messageEl.textContent = `改單失敗：${String(err.message || err)}`;
   }
 }
 

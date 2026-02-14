@@ -394,3 +394,52 @@ def test_staff_cannot_create_combo_rule() -> None:
         },
     )
     assert res.status_code == 403
+
+
+def test_combo_order_uses_bundle_price_not_sum_of_items() -> None:
+    manager_headers = auth_headers("manager1", "manager1234")
+    staff_headers = auth_headers("staff1", "staff1234")
+
+    menu_items = client.get("/api/menu/items", headers=staff_headers).json()
+    milk_tea = find_item(menu_items, "name", "Milk Tea")
+    toast = find_item(menu_items, "name", "Ham Egg Toast")
+
+    combo_res = client.post(
+        "/api/menu/combos",
+        headers=manager_headers,
+        json={
+            "code": "SET60B",
+            "name": "60 Bundle",
+            "bundle_price": 60,
+            "max_drink_price": 60,
+            "drink_choice_count": 1,
+            "side_choice_count": 1,
+            "eligible_drink_item_ids": [milk_tea["id"]],
+            "side_options": [{"code": "A", "name": "Any Side"}],
+            "is_active": True,
+        },
+    )
+    assert combo_res.status_code == 201
+    combo_id = combo_res.json()["id"]
+
+    order_res = client.post(
+        "/api/orders",
+        headers=staff_headers,
+        json={
+            "source": "takeout",
+            "auto_pay": False,
+            "items": [],
+            "combos": [
+                {
+                    "combo_id": combo_id,
+                    "drink_item_ids": [milk_tea["id"]],
+                    "side_item_ids": [toast["id"]],
+                }
+            ],
+        },
+    )
+    assert order_res.status_code == 201
+    created = order_res.json()
+    assert created["payment_status"] == "unpaid"
+    assert created["total_amount"] == 60
+    assert round(sum(row["line_total"] for row in created["items"]), 2) == 60

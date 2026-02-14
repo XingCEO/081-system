@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime
 from enum import Enum
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 
 class SourceType(str, Enum):
@@ -211,10 +211,24 @@ class OrderItemCreate(BaseModel):
     note: str | None = Field(default=None, max_length=200)
 
 
+class OrderComboCreate(BaseModel):
+    combo_id: int
+    quantity: int = Field(default=1, gt=0, le=20)
+    drink_item_ids: list[int] = Field(default_factory=list, max_length=20)
+    side_item_ids: list[int] = Field(default_factory=list, max_length=20)
+
+
 class OrderCreate(BaseModel):
     source: SourceType = SourceType.takeout
     auto_pay: bool = True
-    items: list[OrderItemCreate] = Field(min_length=1)
+    items: list[OrderItemCreate] = Field(default_factory=list)
+    combos: list[OrderComboCreate] = Field(default_factory=list, max_length=50)
+
+    @model_validator(mode="after")
+    def validate_non_empty_lines(self) -> "OrderCreate":
+        if not self.items and not self.combos:
+            raise ValueError("Order must include at least one item or combo")
+        return self
 
 
 class OrderItemOut(BaseModel):
