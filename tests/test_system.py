@@ -10,7 +10,7 @@ sys.path.append(str(Path(__file__).resolve().parents[1]))
 from fastapi.testclient import TestClient
 
 from app.database import Base, SessionLocal, engine
-from app.main import app
+from app.main import app, clear_rate_limits
 from app.seed import seed_database
 
 client = TestClient(app)
@@ -38,6 +38,7 @@ def auth_headers(username: str, password: str) -> dict[str, str]:
 
 
 def setup_function() -> None:
+    clear_rate_limits()
     reset_db()
 
 

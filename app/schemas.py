@@ -186,7 +186,7 @@ class IngredientOut(BaseModel):
 class StockMovementCreate(BaseModel):
     ingredient_id: int
     movement_type: MovementType
-    quantity: float
+    quantity: float = Field(gt=0)
     unit_cost: float | None = None
     reference: str | None = None
     notes: str | None = None

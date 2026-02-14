@@ -22,6 +22,19 @@ const DEMO_CREDENTIALS = [
   "owner1 / owner1234",
 ];
 
+let _appEnv = null;
+async function fetchAppEnv() {
+  if (_appEnv) return _appEnv;
+  try {
+    const res = await fetch("/api/config/public");
+    if (res.ok) {
+      const data = await res.json();
+      _appEnv = data.env || "development";
+    }
+  } catch (_) { /* fallback */ }
+  return _appEnv || "development";
+}
+
 function translateErrorText(text) {
   if (!text) return "";
   let output = String(text);
@@ -524,7 +537,14 @@ async function validateSession(allowedRoles) {
 
 async function loginInteractive(allowedRoles) {
   ensureStyles();
+  const env = await fetchAppEnv();
   const modal = buildModal();
+
+  // Hide demo credentials in production
+  if (env === "production") {
+    const demoSection = modal.querySelector(".auth-demo");
+    if (demoSection) demoSection.style.display = "none";
+  }
   const form = modal.querySelector("#authForm");
   const usernameInput = modal.querySelector("#authUsername");
   const passwordInput = modal.querySelector("#authPassword");

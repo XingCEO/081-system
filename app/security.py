@@ -32,11 +32,16 @@ def hash_password(password: str) -> str:
     return f"{PBKDF2_ROUNDS}${salt}${digest.hex()}"
 
 
+MAX_PBKDF2_ROUNDS = 1_000_000
+
+
 def verify_password(password: str, password_hash: str) -> bool:
     try:
         rounds_str, salt, digest_hex = password_hash.split("$", 2)
         rounds = int(rounds_str)
     except ValueError:
+        return False
+    if rounds <= 0 or rounds > MAX_PBKDF2_ROUNDS:
         return False
     computed = hashlib.pbkdf2_hmac(
         "sha256",

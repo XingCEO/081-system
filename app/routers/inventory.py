@@ -65,6 +65,24 @@ def update_ingredient(
     if not row:
         raise HTTPException(status_code=404, detail="Ingredient not found")
     changes = payload.model_dump(exclude_unset=True)
+
+    # If current_stock is being set directly, create a stock movement for audit trail
+    if "current_stock" in changes and changes["current_stock"] is not None:
+        old_stock = row.current_stock
+        new_stock = changes.pop("current_stock")
+        delta = new_stock - old_stock
+        if abs(delta) > 1e-9:
+            from app.services.inventory import create_movement
+            from app.schemas import MovementType
+            create_movement(
+                db,
+                ingredient=row,
+                movement_type=MovementType.adjustment.value,
+                quantity=delta,
+                reference="MANUAL_OVERRIDE",
+                notes=f"Direct stock set from {old_stock:.2f} to {new_stock:.2f}",
+            )
+
     for key, value in changes.items():
         setattr(row, key, value)
     db.commit()

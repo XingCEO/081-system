@@ -1,11 +1,15 @@
 from __future__ import annotations
 
+import logging
+from collections import defaultdict
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 from pathlib import Path
+from time import time
 
-from fastapi import Depends, FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import Depends, FastAPI, Request, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy import select, text
 from sqlalchemy.exc import SQLAlchemyError
@@ -18,6 +22,20 @@ from app.models import AuditLog
 from app.routers import analytics, audit, auth, inventory, menu, orders
 from app.seed import seed_database
 from app.ws import manager
+
+logger = logging.getLogger(__name__)
+
+# ---------------------------------------------------------------------------
+# Simple in-memory rate limiter for login
+# ---------------------------------------------------------------------------
+_login_attempts: dict[str, list[float]] = defaultdict(list)
+LOGIN_RATE_WINDOW = 60  # seconds
+LOGIN_RATE_MAX = 10  # max attempts per window
+
+
+def clear_rate_limits() -> None:
+    """Clear all rate limit state. Used by tests."""
+    _login_attempts.clear()
 
 
 @asynccontextmanager
@@ -35,7 +53,17 @@ async def lifespan(_: FastAPI):
 
 app = FastAPI(title=settings.app_name, lifespan=lifespan)
 
-origins = [origin.strip() for origin in settings.cors_origins.split(",")] if settings.cors_origins else ["*"]
+# ---------------------------------------------------------------------------
+# CORS — refuse wildcard in production
+# ---------------------------------------------------------------------------
+if settings.cors_origins:
+    origins = [origin.strip() for origin in settings.cors_origins.split(",") if origin.strip()]
+else:
+    origins = []
+
+if not origins and not settings.is_production:
+    origins = ["http://localhost:8000", "http://127.0.0.1:8000"]
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -43,6 +71,48 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+# ---------------------------------------------------------------------------
+# Security headers middleware (CSP, etc.)
+# ---------------------------------------------------------------------------
+@app.middleware("http")
+async def security_headers(request: Request, call_next):
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    response.headers["Content-Security-Policy"] = (
+        "default-src 'self'; "
+        "script-src 'self'; "
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+        "font-src 'self' https://fonts.gstatic.com; "
+        "img-src 'self' data:; "
+        "connect-src 'self' ws: wss:; "
+        "frame-ancestors 'none'"
+    )
+    return response
+
+
+# ---------------------------------------------------------------------------
+# Login rate-limit middleware
+# ---------------------------------------------------------------------------
+@app.middleware("http")
+async def login_rate_limit(request: Request, call_next):
+    if request.url.path == "/api/auth/login" and request.method == "POST":
+        client_ip = request.client.host if request.client else "unknown"
+        now = time()
+        attempts = _login_attempts[client_ip]
+        # Prune old entries
+        _login_attempts[client_ip] = [t for t in attempts if now - t < LOGIN_RATE_WINDOW]
+        if len(_login_attempts[client_ip]) >= LOGIN_RATE_MAX:
+            return JSONResponse(
+                status_code=429,
+                content={"detail": "Too many login attempts. Please try again later."},
+            )
+        _login_attempts[client_ip].append(now)
+    return await call_next(request)
+
 
 app.include_router(menu.router, prefix="/api")
 app.include_router(orders.router, prefix="/api")
@@ -56,6 +126,12 @@ app.include_router(audit.router, prefix="/api")
 def health(db: Session = Depends(get_db)) -> dict:
     db.execute(text("SELECT 1"))
     return {"status": "ok", "ts": datetime.now(timezone.utc).isoformat()}
+
+
+@app.get("/api/config/public")
+def public_config() -> dict:
+    """Expose non-sensitive config to frontend (e.g. whether to show demo credentials)."""
+    return {"env": settings.app_env}
 
 
 @app.websocket("/ws/events")

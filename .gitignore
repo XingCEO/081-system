@@ -9,3 +9,11 @@ alembic_verify.db
 alembic_verify2.db
 server.out.log
 server.err.log
+*.egg-info/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+*.log
+dist/
+build/

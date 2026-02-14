@@ -58,7 +58,7 @@ function restoreScrollState(container, prev) {
 }
 
 function escapeHtml(value) {
-  return String(value || "")
+  return String(value ?? "")
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;")
@@ -67,7 +67,20 @@ function escapeHtml(value) {
 }
 
 function toDate(value) {
-  return new Date(value);
+  if (!value) return new Date(NaN);
+  const d = new Date(value);
+  return d;
+}
+
+function showToast(message) {
+  const existing = document.querySelector(".kds-toast");
+  if (existing) existing.remove();
+  const toast = document.createElement("div");
+  toast.className = "kds-toast";
+  toast.textContent = message;
+  toast.style.cssText = "position:fixed;top:16px;left:50%;transform:translateX(-50%);background:#b13f2e;color:#fff;padding:10px 20px;border-radius:8px;z-index:9999;font-size:14px;box-shadow:0 4px 12px rgba(0,0,0,.3);";
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 5000);
 }
 
 function sortByCreatedAt(rows) {
@@ -75,7 +88,9 @@ function sortByCreatedAt(rows) {
 }
 
 function waitMinutes(createdAt) {
-  const diffMs = Date.now() - toDate(createdAt).getTime();
+  const d = toDate(createdAt);
+  if (Number.isNaN(d.getTime())) return 0;
+  const diffMs = Date.now() - d.getTime();
   return Math.max(0, Math.floor(diffMs / 60000));
 }
 
@@ -319,7 +334,7 @@ async function updateStatus(orderId, status) {
     body: JSON.stringify({ status }),
   });
   if (!res.ok) {
-    alert(`更新失敗：${await Auth.readErrorMessage(res)}`);
+    showToast(`更新失敗：${await Auth.readErrorMessage(res)}`);
     return;
   }
   await fetchOrders();
@@ -345,7 +360,16 @@ function handleSocketPayload(payload) {
     addAlert("new", "付款完成", `#${payload.order_number} 已付款`);
   }
 
-  fetchOrders();
+  debouncedFetchOrders();
+}
+
+let _fetchOrdersTimer = null;
+function debouncedFetchOrders() {
+  if (_fetchOrdersTimer) clearTimeout(_fetchOrdersTimer);
+  _fetchOrdersTimer = setTimeout(() => {
+    _fetchOrdersTimer = null;
+    fetchOrders();
+  }, 300);
 }
 
 function setupWebsocket() {
@@ -380,5 +404,5 @@ async function bootstrap() {
 }
 
 bootstrap().catch((err) => {
-  alert(`初始化失敗：${String(err.message || err)}`);
+  showToast(`初始化失敗：${String(err.message || err)}`);
 });

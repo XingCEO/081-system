@@ -12,6 +12,15 @@ const auditList = document.getElementById("auditList");
 
 const fmt = new Intl.NumberFormat("zh-TW", { maximumFractionDigits: 2 });
 
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
 function formatMoney(value) {
   return fmt.format(Number(value || 0));
 }
@@ -61,9 +70,9 @@ async function fetchIngredients() {
     const tr = document.createElement("tr");
     const lowFlag = row.current_stock <= row.reorder_level ? " (低庫存)" : "";
     tr.innerHTML = `
-      <td>${row.id}</td>
-      <td>${row.name}${lowFlag}</td>
-      <td>${row.unit}</td>
+      <td>${escapeHtml(row.id)}</td>
+      <td>${escapeHtml(row.name)}${lowFlag}</td>
+      <td>${escapeHtml(row.unit)}</td>
       <td>${formatMoney(row.current_stock)}</td>
       <td>${formatMoney(row.reorder_level)}</td>
       <td>${formatMoney(row.cost_per_unit)}</td>
@@ -76,27 +85,37 @@ async function submitMovement(evt) {
   evt.preventDefault();
   movementMsg.textContent = "送出中...";
 
-  const payload = {
-    ingredient_id: Number(document.getElementById("ingredientId").value),
-    movement_type: document.getElementById("movementType").value,
-    quantity: Number(document.getElementById("quantity").value),
-    unit_cost: document.getElementById("unitCost").value ? Number(document.getElementById("unitCost").value) : null,
-    reference: document.getElementById("reference").value || null,
-  };
+  try {
+    const qtyVal = Number(document.getElementById("quantity").value);
+    if (!Number.isFinite(qtyVal) || qtyVal <= 0) {
+      movementMsg.textContent = "失敗：數量必須為正數";
+      return;
+    }
 
-  const res = await Auth.authFetch("/api/inventory/movements", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  });
-  if (!res.ok) {
-    movementMsg.textContent = `失敗：${await Auth.readErrorMessage(res)}`;
-    return;
+    const payload = {
+      ingredient_id: Number(document.getElementById("ingredientId").value),
+      movement_type: document.getElementById("movementType").value,
+      quantity: qtyVal,
+      unit_cost: document.getElementById("unitCost").value ? Number(document.getElementById("unitCost").value) : null,
+      reference: document.getElementById("reference").value || null,
+    };
+
+    const res = await Auth.authFetch("/api/inventory/movements", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      movementMsg.textContent = `失敗：${await Auth.readErrorMessage(res)}`;
+      return;
+    }
+
+    movementMsg.textContent = "異動已送出";
+    movementForm.reset();
+    await Promise.all([fetchIngredients(), fetchOverview()]);
+  } catch (err) {
+    movementMsg.textContent = `失敗：${String(err.message || err)}`;
   }
-
-  movementMsg.textContent = "異動已送出";
-  movementForm.reset();
-  await Promise.all([fetchIngredients(), fetchOverview()]);
 }
 
 async function fetchOverview() {
@@ -144,7 +163,7 @@ function formatAuditPayload(payload) {
   if (!payload || typeof payload !== "object") return "";
   const keys = Object.keys(payload).slice(0, 4);
   if (!keys.length) return "";
-  return keys.map((key) => `${key}: ${JSON.stringify(payload[key])}`).join(" | ");
+  return escapeHtml(keys.map((key) => `${key}: ${JSON.stringify(payload[key])}`).join(" | "));
 }
 
 function auditActionLabel(action) {
@@ -184,8 +203,8 @@ async function fetchAuditLogs() {
       const li = document.createElement("li");
       const payloadText = formatAuditPayload(row.payload);
       li.innerHTML = `
-        <div><strong>${auditActionLabel(row.action)}</strong> | ${row.entity_type}${row.entity_id ? `#${row.entity_id}` : ""}</div>
-        <div>${row.actor_username || "系統"}（${row.actor_role || "未知角色"}）</div>
+        <div><strong>${escapeHtml(auditActionLabel(row.action))}</strong> | ${escapeHtml(row.entity_type)}${row.entity_id ? `#${escapeHtml(row.entity_id)}` : ""}</div>
+        <div>${escapeHtml(row.actor_username || "系統")}（${escapeHtml(row.actor_role || "未知角色")}）</div>
         <div>${new Date(row.created_at).toLocaleString("zh-TW")}</div>
         ${payloadText ? `<small>${payloadText}</small>` : ""}
       `;
@@ -196,9 +215,27 @@ async function fetchAuditLogs() {
 
 movementForm.addEventListener("submit", submitMovement);
 
+function setupWebsocket() {
+  Auth.connectEventSocket({
+    onMessage: (evt) => {
+      try {
+        const payload = JSON.parse(evt.data);
+        if (payload.event && payload.event !== "connected") {
+          fetchIngredients();
+          fetchOverview();
+          fetchAuditLogs();
+        }
+      } catch (_) {
+        // Ignore malformed payload.
+      }
+    },
+  });
+}
+
 async function bootstrap() {
   await Auth.ensureAuth(["manager", "owner"]);
   await Promise.all([fetchIngredients(), fetchOverview(), fetchAuditLogs()]);
+  setupWebsocket();
   setInterval(fetchOverview, 45000);
   setInterval(fetchAuditLogs, 30000);
 }

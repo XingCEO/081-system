@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+import secrets
+
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.config import settings
 from app.models import Ingredient, MenuItem, RecipeLine, User
 from app.schemas import UserRole
 from app.security import hash_password
@@ -13,21 +16,38 @@ def seed_users(db: Session) -> None:
     if has_users:
         return
 
-    default_users = [
-        ("staff1", "staff1234", UserRole.staff.value),
-        ("kitchen1", "kitchen1234", UserRole.kitchen.value),
-        ("manager1", "manager1234", UserRole.manager.value),
-        ("owner1", "owner1234", UserRole.owner.value),
-    ]
-    for username, password, role in default_users:
+    if settings.is_production:
+        # In production, only create owner with a random password printed to logs
+        temp_password = secrets.token_urlsafe(16)
         db.add(
             User(
-                username=username,
-                password_hash=hash_password(password),
-                role=role,
+                username="owner1",
+                password_hash=hash_password(temp_password),
+                role=UserRole.owner.value,
                 is_active=True,
             ),
         )
+        import logging
+        logging.getLogger(__name__).warning(
+            "Created initial owner account: owner1 / %s  — change this password immediately!",
+            temp_password,
+        )
+    else:
+        default_users = [
+            ("staff1", "staff1234", UserRole.staff.value),
+            ("kitchen1", "kitchen1234", UserRole.kitchen.value),
+            ("manager1", "manager1234", UserRole.manager.value),
+            ("owner1", "owner1234", UserRole.owner.value),
+        ]
+        for username, password, role in default_users:
+            db.add(
+                User(
+                    username=username,
+                    password_hash=hash_password(password),
+                    role=role,
+                    is_active=True,
+                ),
+            )
     db.flush()
 
 

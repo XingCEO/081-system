@@ -26,7 +26,7 @@ from app.services.inventory import (
 
 def generate_order_number() -> str:
     timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
-    return f"OD{timestamp}{randint(100, 999)}"
+    return f"OD{timestamp}{randint(1000, 9999)}"
 
 
 def fetch_order_with_items(db: Session, order_id: int) -> Order | None:
