@@ -22,17 +22,35 @@ const DEMO_CREDENTIALS = [
   "owner1 / owner1234",
 ];
 
-let _appEnv = null;
-async function fetchAppEnv() {
-  if (_appEnv) return _appEnv;
+let _publicConfig = null;
+async function fetchPublicConfig() {
+  if (_publicConfig) return _publicConfig;
   try {
     const res = await fetch("/api/config/public");
     if (res.ok) {
       const data = await res.json();
-      _appEnv = data.env || "development";
+      _publicConfig = {
+        env: data?.env || "development",
+        auth_disabled: Boolean(data?.auth_disabled),
+      };
     }
-  } catch (_) { /* fallback */ }
-  return _appEnv || "development";
+  } catch (_) {
+    // fallback
+  }
+  if (!_publicConfig) {
+    _publicConfig = { env: "development", auth_disabled: false };
+  }
+  return _publicConfig;
+}
+
+async function fetchAppEnv() {
+  const conf = await fetchPublicConfig();
+  return conf.env || "development";
+}
+
+async function isAuthDisabled() {
+  const conf = await fetchPublicConfig();
+  return Boolean(conf.auth_disabled);
 }
 
 function translateErrorText(text) {
@@ -512,8 +530,6 @@ function ensureStyles() {
 
 async function validateSession(allowedRoles) {
   const session = getSession();
-  if (!session || !session.access_token) return null;
-
   const res = await authFetch("/api/auth/me", { retries: 0 });
   if (!res.ok) return null;
 
@@ -522,7 +538,7 @@ async function validateSession(allowedRoles) {
     return { denied: true, role: me.role };
   }
 
-  const merged = { ...session, user: me };
+  const merged = { ...(session || {}), user: me };
   saveSession(merged);
   return merged;
 }
@@ -622,6 +638,10 @@ async function ensureAuth(allowedRoles = []) {
   if (existing && existing.denied) {
     clearSession();
   }
+  if (await isAuthDisabled()) {
+    const passthrough = await validateSession(allowedRoles);
+    if (passthrough && !passthrough.denied) return passthrough;
+  }
   return loginInteractive(allowedRoles);
 }
 
@@ -632,8 +652,9 @@ function getToken() {
 
 function openEventSocket() {
   const protocol = location.protocol === "https:" ? "wss:" : "ws:";
-  const token = encodeURIComponent(getToken());
-  return new WebSocket(`${protocol}//${location.host}/ws/events?token=${token}`);
+  const token = getToken();
+  const query = token ? `?token=${encodeURIComponent(token)}` : "";
+  return new WebSocket(`${protocol}//${location.host}/ws/events${query}`);
 }
 
 function connectEventSocket({ onMessage, onConnected, onDisconnected }) {

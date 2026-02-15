@@ -18,7 +18,7 @@
   <link rel="icon" type="image/x-icon" href="/assets/favicon.ico" />
   <title>早餐店前台 POS</title>
   <link rel="stylesheet" href="/shared/theme.css" />
-  <link rel="stylesheet" href="/pos/styles.css?v=20260215r2" />
+  <link rel="stylesheet" href="/pos/styles.css?v=20260215r5" />
 </head>
 <body>
   <div class="pos-shell">
@@ -26,27 +26,28 @@
       <div class="top-left">
         <p class="eyebrow">Front Counter POS</p>
         <h1>早餐店前台 POS</h1>
-        <p class="store-meta">
-          <span id="bizTime">--:--</span>
-          <span class="dot">•</span>
-          <span>尖峰 07:00-09:30</span>
-          <span class="dot">•</span>
-          <span>UI v2026.02.15-r2</span>
-        </p>
+        <div class="store-meta">
+          <span class="meta-pill time-pill"><span class="meta-label">台灣時間</span><strong id="bizTime">--:--</strong></span>
+          <span class="meta-pill">尖峰 07:00-09:30</span>
+          <span class="meta-pill">UI v2026.02.15-r5</span>
+        </div>
       </div>
 
       <div class="top-center">
         <label class="search-wrap" for="menuSearch">
-          <span class="search-icon">⌕</span>
+          <span class="search-icon" aria-hidden="true">⌕</span>
           <input id="menuSearch" type="search" placeholder="搜尋品項（/）" autocomplete="off" />
+          <span class="search-hotkey" aria-hidden="true">/</span>
         </label>
       </div>
 
       <div class="top-right">
-        <button id="newOrderBtn" class="ghost-btn" type="button" title="F1">新單</button>
-        <button id="holdOrderBtn" class="ghost-btn" type="button" title="F2">掛單</button>
-        <button id="peakModeToggle" class="ghost-btn" type="button">尖峰模式：關</button>
-        <a class="portal-link" href="/">入口</a>
+        <div class="action-strip">
+          <button id="newOrderBtn" class="ghost-btn" type="button" title="F1">新單</button>
+          <button id="holdOrderBtn" class="ghost-btn" type="button" title="F2">掛單</button>
+          <button id="peakModeToggle" class="ghost-btn" type="button">尖峰模式：關</button>
+          <a class="portal-link" href="/">入口</a>
+        </div>
       </div>
     </header>
 
@@ -54,8 +55,8 @@
       <section class="left-column" aria-label="菜單區">
         <section class="panel combo-panel">
           <div class="panel-head">
-            <h2>套餐快速加入</h2>
-            <span class="sub">常用套餐可直接加入，複雜選項可展開</span>
+            <h2>套餐快選</h2>
+            <span class="sub">常用套餐可直接展開客製內容</span>
           </div>
           <div id="comboQuickSection" class="combo-quick"></div>
         </section>
@@ -63,16 +64,20 @@
         <section class="panel menu-panel">
           <div class="panel-head menu-head">
             <h2>菜單</h2>
-            <span class="sub">點擊 +1 快速加入</span>
+            <span class="sub">分類瀏覽或搜尋後，點擊 +1 快速加入</span>
           </div>
-          <div id="menuCategoryBar" class="menu-category-bar"></div>
-          <div id="menuGrid" class="menu-grid" aria-live="polite"></div>
+          <div class="category-wrap">
+            <div id="menuCategoryBar" class="menu-category-bar"></div>
+          </div>
+          <div class="menu-grid-wrap">
+            <div id="menuGrid" class="menu-grid" aria-live="polite"></div>
+          </div>
         </section>
       </section>
 
       <aside class="right-column" aria-label="訂單區">
         <section class="panel order-panel">
-          <div class="panel-head order-head">
+          <div class="panel-head order-panel-head">
             <h2>訂單工作台</h2>
             <div id="orderTabs" class="tabs" role="tablist" aria-label="訂單分頁">
               <button class="tab-btn active" data-tab="current" role="tab" aria-selected="true">目前訂單 <span id="currentCount" class="badge-pill">0</span></button>
@@ -103,7 +108,9 @@
               </label>
             </div>
 
-            <ul id="cartList" class="cart-list"></ul>
+            <div class="cart-wrap">
+              <ul id="cartList" class="cart-list"></ul>
+            </div>
 
             <div class="summary-box">
               <div class="summary-row">
@@ -146,7 +153,7 @@
     </section>
   </div>
 
-  <script src="/shared/auth.js?v=20260215r2"></script>
-  <script src="/pos/app.js?v=20260215r2"></script>
+  <script src="/shared/auth.js?v=20260215r5"></script>
+  <script src="/pos/app.js?v=20260215r5"></script>
 </body>
 </html>

@@ -112,8 +112,8 @@ def health(db: Session = Depends(get_db)) -> dict:
 
 @app.get("/api/config/public")
 def public_config() -> dict:
-    """Expose non-sensitive config to frontend (e.g. whether to show demo credentials)."""
-    return {"env": settings.app_env}
+    """Expose non-sensitive config to frontend."""
+    return {"env": settings.app_env, "auth_disabled": settings.auth_disabled}
 
 
 @app.websocket("/ws/events")

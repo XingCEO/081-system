@@ -23,6 +23,7 @@ def _env_bool(name: str, default: bool = False) -> bool:
 class Settings:
     app_name: str = os.getenv("APP_NAME", "Breakfast Store System")
     app_env: str = os.getenv("APP_ENV", "development")
+    auth_disabled: bool = _env_bool("AUTH_DISABLED", True)
     database_url: str = os.getenv("DATABASE_URL", "sqlite:///./breakfast.db")
     redis_url: str = os.getenv("REDIS_URL", "").strip()
     trust_proxy_headers: bool = _env_bool("TRUST_PROXY_HEADERS", False)

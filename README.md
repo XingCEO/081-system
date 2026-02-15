@@ -7,6 +7,7 @@ This project is a deployable MVP for Zeabur with:
 - Inventory and stock movement management
 - Business analytics dashboard
 - Role-based login and permissions
+- Optional no-password mode (`AUTH_DISABLED=true`)
 
 ## Stack
 
@@ -50,6 +51,11 @@ Change these in production.
 - `kitchen1 / kitchen1234`
 - `manager1 / manager1234`
 - `owner1 / owner1234`
+
+## Authentication switch
+
+- `AUTH_DISABLED=true` (default): no login/password required for frontend pages and API.
+- `AUTH_DISABLED=false`: enforce normal JWT login and role checks.
 
 ## Roles
 
@@ -122,6 +128,7 @@ Change these in production.
    - `DATABASE_URL` (Zeabur PostgreSQL connection string)
    - `REDIS_URL` (optional but recommended for distributed login rate limit)
    - `APP_ENV=production`
+   - `AUTH_DISABLED=false` (recommended in production)
    - `SECRET_KEY=<long-random-string>`
    - `TOKEN_EXPIRE_MINUTES=720`
    - `LOGIN_RATE_WINDOW_SECONDS=60`
