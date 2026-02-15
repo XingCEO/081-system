@@ -29,6 +29,16 @@ function formatTime(value) {
   return dt.toLocaleTimeString("zh-TW", { hour: "2-digit", minute: "2-digit" });
 }
 
+function applyDensityMode(counts) {
+  const maxCount = Math.max(...counts);
+  document.body.classList.remove("density-compact", "density-dense");
+  if (maxCount >= 18) {
+    document.body.classList.add("density-dense");
+  } else if (maxCount >= 12) {
+    document.body.classList.add("density-compact");
+  }
+}
+
 function renderTickets(container, rows, emptyText) {
   container.innerHTML = "";
   if (!rows.length) {
@@ -60,6 +70,7 @@ async function fetchPickupBoard() {
   countPreparing.textContent = String(preparing.length);
   countReady.textContent = String(ready.length);
   countCompleted.textContent = String(completed.length);
+  applyDensityMode([preparing.length, ready.length, completed.length]);
 
   renderTickets(preparingList, preparing, "目前沒有製作中的號碼");
   renderTickets(readyList, ready, "目前沒有可取餐號碼");
