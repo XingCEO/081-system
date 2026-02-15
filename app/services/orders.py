@@ -6,6 +6,7 @@ from random import randint
 
 from fastapi import HTTPException
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, joinedload
 
 from app.models import ComboRule, MenuItem, Order, OrderItem
@@ -16,6 +17,7 @@ from app.schemas import (
     OrderDiffLine,
     OrderDiffOut,
     OrderDiffQtyLine,
+    PaymentMethod,
     OrderStatus,
     PaymentStatus,
 )
@@ -133,6 +135,29 @@ def _build_combo_order_lines(db: Session, combo_input: OrderComboCreate) -> list
 def generate_order_number() -> str:
     timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
     return f"OD{timestamp}{randint(1000, 9999)}"
+
+
+def _create_order_with_unique_number(
+    db: Session,
+    *,
+    source: str,
+    max_retries: int = 5,
+) -> Order:
+    for _ in range(max_retries):
+        row = Order(
+            order_number=generate_order_number(),
+            source=source,
+            status=OrderStatus.pending.value,
+            payment_status=PaymentStatus.unpaid.value,
+        )
+        db.add(row)
+        try:
+            db.flush()
+            return row
+        except IntegrityError:
+            db.rollback()
+            continue
+    raise HTTPException(status_code=503, detail="Failed to allocate unique order number. Please retry.")
 
 
 def fetch_order_with_items(db: Session, order_id: int) -> Order | None:
@@ -273,74 +298,70 @@ def _replace_order_items(db: Session, order: Order, lines: list[dict]) -> None:
 
 
 def create_order(db: Session, payload: OrderCreate) -> tuple[Order, list[dict]]:
-    try:
-        order = Order(
-            order_number=generate_order_number(),
-            source=payload.source.value,
-            status=OrderStatus.pending.value,
-            payment_status=PaymentStatus.unpaid.value,
+    order = _create_order_with_unique_number(db, source=payload.source.value)
+    order.payment_method = payload.payment_method.value
+
+    lines: list[dict] = []
+    for input_item in payload.items:
+        menu_item = _load_active_menu_item(db, input_item.menu_item_id)
+        line_total = round(menu_item.price * input_item.quantity, 2)
+        lines.append(
+            {
+                "menu_item_id": menu_item.id,
+                "menu_item_name": menu_item.name,
+                "quantity": input_item.quantity,
+                "unit_price": menu_item.price,
+                "line_total": line_total,
+                "note": input_item.note,
+            },
         )
 
-        db.add(order)
-        db.flush()
+    for combo_input in payload.combos:
+        lines.extend(_build_combo_order_lines(db, combo_input))
 
-        lines: list[dict] = []
-        for input_item in payload.items:
-            menu_item = _load_active_menu_item(db, input_item.menu_item_id)
-            line_total = round(menu_item.price * input_item.quantity, 2)
-            lines.append(
-                {
-                    "menu_item_id": menu_item.id,
-                    "menu_item_name": menu_item.name,
-                    "quantity": input_item.quantity,
-                    "unit_price": menu_item.price,
-                    "line_total": line_total,
-                    "note": input_item.note,
-                },
-            )
+    if not lines:
+        raise HTTPException(status_code=400, detail="Order must include at least one item or combo")
 
-        for combo_input in payload.combos:
-            lines.extend(_build_combo_order_lines(db, combo_input))
+    total = 0.0
+    for line in lines:
+        total += line["line_total"]
+        db.add(
+            OrderItem(
+                order_id=order.id,
+                menu_item_id=line["menu_item_id"],
+                menu_item_name=line["menu_item_name"],
+                quantity=line["quantity"],
+                unit_price=line["unit_price"],
+                line_total=line["line_total"],
+                note=line["note"],
+            ),
+        )
 
-        if not lines:
-            raise HTTPException(status_code=400, detail="Order must include at least one item or combo")
+    order.total_amount = round(total, 2)
+    db.flush()
 
-        total = 0.0
-        for line in lines:
-            total += line["line_total"]
-            db.add(
-                OrderItem(
-                    order_id=order.id,
-                    menu_item_id=line["menu_item_id"],
-                    menu_item_name=line["menu_item_name"],
-                    quantity=line["quantity"],
-                    unit_price=line["unit_price"],
-                    line_total=line["line_total"],
-                    note=line["note"],
-                ),
-            )
+    low_stock = []
+    if payload.auto_pay:
+        payable_order = fetch_order_with_items(db, order.id) or order
+        low_stock = pay_order(db, payable_order)
 
-        order.total_amount = round(total, 2)
-        db.flush()
-
-        low_stock = []
-        if payload.auto_pay:
-            payable_order = fetch_order_with_items(db, order.id) or order
-            low_stock = pay_order(db, payable_order)
-
-        db.commit()
-        refreshed = fetch_order_with_items(db, order.id)
-        if not refreshed:
-            raise HTTPException(status_code=500, detail="Failed to load order")
-        return refreshed, low_stock
-    except Exception:
-        db.rollback()
-        raise
+    refreshed = fetch_order_with_items(db, order.id)
+    if not refreshed:
+        raise HTTPException(status_code=500, detail="Failed to load order")
+    return refreshed, low_stock
 
 
-def pay_order(db: Session, order: Order) -> list[dict]:
+def pay_order(
+    db: Session,
+    order: Order,
+    payment_method: PaymentMethod | str | None = None,
+) -> list[dict]:
     if order.payment_status == PaymentStatus.paid.value:
         return []
+    if payment_method:
+        order.payment_method = (
+            payment_method.value if isinstance(payment_method, PaymentMethod) else str(payment_method)
+        )
     order.payment_status = PaymentStatus.paid.value
     order.paid_at = datetime.now(timezone.utc)
     return deduct_inventory_for_order(db, order)
@@ -359,24 +380,19 @@ def amend_order(db: Session, order: Order, payload: OrderAmendRequest) -> tuple[
     if is_noop:
         return order, diff, []
 
-    try:
-        low_stock = adjust_inventory_for_amended_order(
-            db,
-            order=order,
-            previous_items=[
-                {"menu_item_id": item.menu_item_id, "quantity": item.quantity}
-                for item in order.items
-            ],
-            next_items=[
-                {"menu_item_id": line["menu_item_id"], "quantity": line["quantity"]}
-                for line in amended_lines
-            ],
-        )
-        _replace_order_items(db, order, amended_lines)
-        db.commit()
-    except Exception:
-        db.rollback()
-        raise
+    low_stock = adjust_inventory_for_amended_order(
+        db,
+        order=order,
+        previous_items=[
+            {"menu_item_id": item.menu_item_id, "quantity": item.quantity}
+            for item in order.items
+        ],
+        next_items=[
+            {"menu_item_id": line["menu_item_id"], "quantity": line["quantity"]}
+            for line in amended_lines
+        ],
+    )
+    _replace_order_items(db, order, amended_lines)
 
     refreshed = fetch_order_with_items(db, order.id)
     if not refreshed:
@@ -404,7 +420,6 @@ def update_order_status(db: Session, order: Order, next_status: OrderStatus) -> 
         order.completed_at = datetime.now(timezone.utc)
     if next_status == OrderStatus.cancelled:
         restore_inventory_for_cancelled_order(db, order)
-    db.commit()
 
     refreshed = fetch_order_with_items(db, order.id)
     if not refreshed:

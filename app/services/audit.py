@@ -14,6 +14,11 @@ def create_audit_log(
     entity_id: str | int | None = None,
     payload: dict | None = None,
 ) -> None:
+    """Stage an audit row in the current transaction.
+
+    This helper intentionally does not commit, so callers can control
+    transaction boundaries explicitly.
+    """
     row = AuditLog(
         actor_user_id=actor.id if actor else None,
         actor_username=actor.username if actor else None,
@@ -24,5 +29,4 @@ def create_audit_log(
         payload=payload or {},
     )
     db.add(row)
-    db.commit()
-
+    db.flush()

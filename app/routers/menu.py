@@ -220,6 +220,25 @@ def create_combo_rule(
             ),
         )
 
+    create_audit_log(
+        db,
+        actor=current_user,
+        action="menu.combo.create",
+        entity_type="combo_rule",
+        entity_id=row.id,
+        payload={
+            "code": code,
+            "name": name,
+            "bundle_price": payload.bundle_price,
+            "max_drink_price": payload.max_drink_price,
+            "drink_choice_count": payload.drink_choice_count,
+            "side_choice_count": payload.side_choice_count,
+            "eligible_drink_item_ids": eligible_drink_item_ids,
+            "side_options": side_options,
+            "is_active": payload.is_active,
+        },
+    )
+
     try:
         db.commit()
     except IntegrityError:
@@ -228,24 +247,6 @@ def create_combo_rule(
 
     db.expire_all()
     refreshed = _load_combo_or_404(db, row.id)
-    create_audit_log(
-        db,
-        actor=current_user,
-        action="menu.combo.create",
-        entity_type="combo_rule",
-        entity_id=row.id,
-        payload={
-            "code": refreshed.code,
-            "name": refreshed.name,
-            "bundle_price": refreshed.bundle_price,
-            "max_drink_price": refreshed.max_drink_price,
-            "drink_choice_count": refreshed.drink_choice_count,
-            "side_choice_count": refreshed.side_choice_count,
-            "eligible_drink_item_ids": [line.menu_item_id for line in refreshed.eligible_drinks],
-            "side_options": [{"code": line.code, "name": line.name} for line in refreshed.side_options],
-            "is_active": refreshed.is_active,
-        },
-    )
     return _combo_to_out(refreshed)
 
 
@@ -325,14 +326,6 @@ def update_combo_rule(
         side_option_count=candidate_side_count,
     )
 
-    try:
-        db.commit()
-    except IntegrityError:
-        db.rollback()
-        raise HTTPException(status_code=409, detail="Combo rule conflicts with existing data")
-
-    db.expire_all()
-    refreshed = _load_combo_or_404(db, combo_id)
     create_audit_log(
         db,
         actor=current_user,
@@ -341,6 +334,15 @@ def update_combo_rule(
         entity_id=combo_id,
         payload=changes,
     )
+
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=409, detail="Combo rule conflicts with existing data")
+
+    db.expire_all()
+    refreshed = _load_combo_or_404(db, combo_id)
     return _combo_to_out(refreshed)
 
 
@@ -359,8 +361,7 @@ def create_menu_item(
         is_active=payload.is_active,
     )
     db.add(row)
-    db.commit()
-    db.refresh(row)
+    db.flush()
     create_audit_log(
         db,
         actor=current_user,
@@ -369,6 +370,8 @@ def create_menu_item(
         entity_id=row.id,
         payload={"name": row.name, "price": row.price, "is_active": row.is_active},
     )
+    db.commit()
+    db.refresh(row)
     return row
 
 
@@ -387,8 +390,6 @@ def update_menu_item(
     for key, value in data.items():
         setattr(row, key, value)
 
-    db.commit()
-    db.refresh(row)
     create_audit_log(
         db,
         actor=current_user,
@@ -397,6 +398,8 @@ def update_menu_item(
         entity_id=row.id,
         payload=data,
     )
+    db.commit()
+    db.refresh(row)
     return row
 
 
@@ -452,7 +455,6 @@ def replace_recipe(
     db.query(RecipeLine).filter(RecipeLine.menu_item_id == item_id).delete()
     for line in payload:
         db.add(RecipeLine(menu_item_id=item_id, ingredient_id=line.ingredient_id, quantity=line.quantity))
-    db.commit()
     create_audit_log(
         db,
         actor=current_user,
@@ -461,5 +463,6 @@ def replace_recipe(
         entity_id=item_id,
         payload={"lines": [line.model_dump() for line in payload]},
     )
+    db.commit()
 
     return get_recipe(item_id=item_id, db=db)

@@ -279,6 +279,43 @@ button:hover {
   -webkit-overflow-scrolling: touch;
 }
 
+.panel-shift {
+  display: grid;
+  grid-template-rows: auto auto auto auto auto auto minmax(0, 1fr);
+  gap: var(--gap-sm);
+}
+
+.shift-current {
+  border: 1px solid rgba(164, 195, 213, 0.26);
+  border-radius: var(--radius-card);
+  background: rgba(9, 24, 35, 0.72);
+  padding: 10px;
+  font-size: var(--text-sm);
+  line-height: 1.45;
+}
+
+.shift-current article {
+  display: grid;
+  gap: 4px;
+}
+
+.shift-history {
+  margin: 0;
+  padding-left: 0;
+  list-style: none;
+  min-height: 0;
+  overflow: auto;
+  display: grid;
+  gap: 6px;
+}
+
+.shift-history li {
+  border: 1px solid rgba(162, 193, 212, 0.24);
+  border-radius: var(--radius-card);
+  background: rgba(8, 20, 30, 0.62);
+  padding: 10px;
+}
+
 .cards {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -372,7 +409,8 @@ li {
 .audit-list,
 #topItems,
 #lowStock,
-.panel-form .movement-form {
+.panel-form .movement-form,
+.shift-history {
   scrollbar-width: thin;
   scrollbar-color: var(--scroll-thumb) var(--scroll-track);
 }
@@ -381,7 +419,8 @@ li {
 .audit-list::-webkit-scrollbar,
 #topItems::-webkit-scrollbar,
 #lowStock::-webkit-scrollbar,
-.panel-form .movement-form::-webkit-scrollbar {
+.panel-form .movement-form::-webkit-scrollbar,
+.shift-history::-webkit-scrollbar {
   width: 10px;
   height: 10px;
 }
@@ -390,7 +429,8 @@ li {
 .audit-list::-webkit-scrollbar-track,
 #topItems::-webkit-scrollbar-track,
 #lowStock::-webkit-scrollbar-track,
-.panel-form .movement-form::-webkit-scrollbar-track {
+.panel-form .movement-form::-webkit-scrollbar-track,
+.shift-history::-webkit-scrollbar-track {
   background: var(--scroll-track);
   border-radius: 999px;
 }
@@ -399,7 +439,8 @@ li {
 .audit-list::-webkit-scrollbar-thumb,
 #topItems::-webkit-scrollbar-thumb,
 #lowStock::-webkit-scrollbar-thumb,
-.panel-form .movement-form::-webkit-scrollbar-thumb {
+.panel-form .movement-form::-webkit-scrollbar-thumb,
+.shift-history::-webkit-scrollbar-thumb {
   background: var(--scroll-thumb);
   border: 2px solid transparent;
   background-clip: padding-box;
@@ -410,7 +451,8 @@ li {
 .audit-list::-webkit-scrollbar-thumb:hover,
 #topItems::-webkit-scrollbar-thumb:hover,
 #lowStock::-webkit-scrollbar-thumb:hover,
-.panel-form .movement-form::-webkit-scrollbar-thumb:hover {
+.panel-form .movement-form::-webkit-scrollbar-thumb:hover,
+.shift-history::-webkit-scrollbar-thumb:hover {
   background: var(--scroll-thumb-hover);
   border: 2px solid transparent;
   background-clip: padding-box;

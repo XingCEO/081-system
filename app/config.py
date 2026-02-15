@@ -13,12 +13,23 @@ _INSECURE_KEY_PLACEHOLDERS = {
 }
 
 
+def _env_bool(name: str, default: bool = False) -> bool:
+    raw = os.getenv(name)
+    if raw is None:
+        return default
+    return raw.strip().lower() in {"1", "true", "yes", "on"}
+
+
 class Settings:
     app_name: str = os.getenv("APP_NAME", "Breakfast Store System")
     app_env: str = os.getenv("APP_ENV", "development")
     database_url: str = os.getenv("DATABASE_URL", "sqlite:///./breakfast.db")
+    redis_url: str = os.getenv("REDIS_URL", "").strip()
+    trust_proxy_headers: bool = _env_bool("TRUST_PROXY_HEADERS", False)
     cors_origins: str = os.getenv("CORS_ORIGINS", "")
     token_expire_minutes: int = int(os.getenv("TOKEN_EXPIRE_MINUTES", "720"))
+    login_rate_window_seconds: int = int(os.getenv("LOGIN_RATE_WINDOW_SECONDS", "60"))
+    login_rate_max_attempts: int = int(os.getenv("LOGIN_RATE_MAX_ATTEMPTS", "10"))
 
     def __init__(self) -> None:
         raw_key = os.getenv("SECRET_KEY", "")

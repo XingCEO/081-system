@@ -40,6 +40,7 @@
       --pos: #4cc7a2;
       --kds: #ff9c5d;
       --admin: #5ea5ff;
+      --pickup: #7ae8e4;
       --docs: #f2d47f;
       --page-pad: clamp(10px, 1.2vw, 26px);
       --gap-sm: clamp(8px, 0.7vw, 14px);
@@ -265,6 +266,14 @@
       background: var(--admin);
     }
 
+    .portal-pickup {
+      background: linear-gradient(140deg, rgba(10, 40, 43, 0.88), rgba(10, 30, 35, 0.9));
+    }
+
+    .portal-pickup::before {
+      background: var(--pickup);
+    }
+
     .portal-docs {
       background: linear-gradient(140deg, rgba(46, 38, 19, 0.86), rgba(31, 26, 14, 0.92));
     }
@@ -366,6 +375,10 @@
       <a class="portal portal-admin" href="/admin">
         <h2>後台管理</h2>
         <p>庫存異動、營運分析、稽核紀錄。</p>
+      </a>
+      <a class="portal portal-pickup" href="/pickup">
+        <h2>取餐叫號看板</h2>
+        <p>即時顯示製作中、可取餐、已完成號碼。</p>
       </a>
       <a class="portal portal-docs" href="/docs">
         <h2>API 文件</h2>

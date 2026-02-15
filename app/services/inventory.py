@@ -169,8 +169,7 @@ def apply_manual_movement(
         unit_cost=unit_cost,
         notes=notes,
     )
-    db.commit()
-    db.refresh(movement)
+    db.flush()
     return movement
 
 

@@ -181,6 +181,7 @@ class Order(Base):
     source: Mapped[str] = mapped_column(String(20), default="takeout")
     status: Mapped[str] = mapped_column(String(20), default="pending")
     payment_status: Mapped[str] = mapped_column(String(20), default="unpaid")
+    payment_method: Mapped[str] = mapped_column(String(20), default="cash", nullable=False)
     total_amount: Mapped[float] = mapped_column(Float, default=0.0, nullable=False)
     inventory_deducted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     paid_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
@@ -224,3 +225,33 @@ class StockMovement(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     ingredient: Mapped[Ingredient] = relationship("Ingredient", back_populates="stock_movements")
+
+
+class ShiftSession(Base):
+    __tablename__ = "shift_sessions"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    shift_name: Mapped[str] = mapped_column(String(40), nullable=False)
+    status: Mapped[str] = mapped_column(String(20), default="open", nullable=False, index=True)
+    opening_cash: Mapped[float] = mapped_column(Float, default=0.0, nullable=False)
+    expected_cash: Mapped[float] = mapped_column(Float, default=0.0, nullable=False)
+    actual_cash: Mapped[float | None] = mapped_column(Float, nullable=True)
+    cash_difference: Mapped[float | None] = mapped_column(Float, nullable=True)
+    paid_order_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    total_revenue: Mapped[float] = mapped_column(Float, default=0.0, nullable=False)
+    cash_revenue: Mapped[float] = mapped_column(Float, default=0.0, nullable=False)
+    non_cash_revenue: Mapped[float] = mapped_column(Float, default=0.0, nullable=False)
+    refund_amount: Mapped[float] = mapped_column(Float, default=0.0, nullable=False)
+    opened_by_user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False, index=True)
+    opened_by_username: Mapped[str] = mapped_column(String(80), nullable=False)
+    closed_by_user_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True, index=True)
+    closed_by_username: Mapped[str | None] = mapped_column(String(80), nullable=True)
+    notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+    opened_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), index=True)
+    closed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True, index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+    )

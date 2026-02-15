@@ -101,6 +101,7 @@ Change these in production.
 - Amending a paid order adjusts inventory by delta only (`AMEND:<order_number>` movement reference).
 - Frontend API requests include timeout + retry for GET endpoints.
 - WebSocket reconnect uses exponential backoff to reduce reconnect storms.
+- Login rate limit supports Redis-backed counters for multi-instance deployment (`REDIS_URL`), keyed by `IP + username`.
 - Role-sensitive actions are captured in `audit_logs` for traceability.
 
 ## Database migration (Alembic)
@@ -119,9 +120,13 @@ Change these in production.
    - `alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port $PORT`
 4. Set env vars:
    - `DATABASE_URL` (Zeabur PostgreSQL connection string)
+   - `REDIS_URL` (optional but recommended for distributed login rate limit)
    - `APP_ENV=production`
    - `SECRET_KEY=<long-random-string>`
    - `TOKEN_EXPIRE_MINUTES=720`
+   - `LOGIN_RATE_WINDOW_SECONDS=60`
+   - `LOGIN_RATE_MAX_ATTEMPTS=10`
+   - `TRUST_PROXY_HEADERS=true` (enable when running behind a trusted reverse proxy)
    - `CORS_ORIGINS=<your-domain>`
 
 ### Docker Service

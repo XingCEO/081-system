@@ -79,6 +79,28 @@
       <p id="movementMsg" class="message" aria-live="polite"></p>
     </section>
 
+    <section class="panel panel-shift">
+      <div class="section-title">
+        <h2>交班對帳</h2>
+        <span>開班 / 關班 / 差額</span>
+      </div>
+      <div id="shiftCurrent" class="shift-current"></div>
+      <form id="shiftOpenForm" class="movement-form">
+        <label>班別名稱 <input type="text" id="shiftName" value="早班" required /></label>
+        <label>開班現金 <input type="number" id="openingCash" step="0.01" min="0" value="0" required /></label>
+        <label>備註 <input type="text" id="shiftOpenNote" /></label>
+        <button type="submit">開啟班別</button>
+      </form>
+      <form id="shiftCloseForm" class="movement-form">
+        <label>盤點現金 <input type="number" id="actualCash" step="0.01" min="0" required /></label>
+        <label>備註 <input type="text" id="shiftCloseNote" /></label>
+        <button type="submit">關閉班別並對帳</button>
+      </form>
+      <p id="shiftMsg" class="message" aria-live="polite"></p>
+      <h3>最近交班</h3>
+      <ul id="shiftHistory" class="shift-history"></ul>
+    </section>
+
     <section class="panel panel-analytics">
       <div class="section-title">
         <h2>近 7 日營運摘要</h2>

@@ -53,6 +53,31 @@ def test_auth_and_role_guard() -> None:
     assert analytics_res.status_code == 403
 
 
+def test_login_rate_limit_blocks_excessive_attempts() -> None:
+    for _ in range(10):
+        res = client.post("/api/auth/login", json={"username": "staff1", "password": "wrong-password"})
+        assert res.status_code == 401
+
+    blocked = client.post("/api/auth/login", json={"username": "staff1", "password": "wrong-password"})
+    assert blocked.status_code == 429
+    assert blocked.json()["detail"] == "Too many login attempts. Please try again later."
+
+
+def test_login_rate_limit_does_not_count_successful_logins() -> None:
+    for _ in range(12):
+        res = client.post("/api/auth/login", json={"username": "staff1", "password": "staff1234"})
+        assert res.status_code == 200
+
+
+def test_login_rate_limit_isolated_by_username() -> None:
+    for _ in range(10):
+        res = client.post("/api/auth/login", json={"username": "staff1", "password": "wrong-password"})
+        assert res.status_code == 401
+
+    other_user = client.post("/api/auth/login", json={"username": "manager1", "password": "manager1234"})
+    assert other_user.status_code == 200
+
+
 def test_order_auto_pay_deduct_inventory() -> None:
     staff_headers = auth_headers("staff1", "staff1234")
     manager_headers = auth_headers("manager1", "manager1234")
@@ -443,3 +468,129 @@ def test_combo_order_uses_bundle_price_not_sum_of_items() -> None:
     assert created["payment_status"] == "unpaid"
     assert created["total_amount"] == 60
     assert round(sum(row["line_total"] for row in created["items"]), 2) == 60
+
+
+def test_order_number_collision_retries_and_succeeds() -> None:
+    from app.services import orders as order_service
+
+    staff_headers = auth_headers("staff1", "staff1234")
+    menu_items = client.get("/api/menu/items", headers=staff_headers).json()
+    milk_tea = find_item(menu_items, "name", "Milk Tea")
+
+    sequence = iter(["ODTESTDUP1", "ODTESTDUP1", "ODTESTOK2"])
+    original = order_service.generate_order_number
+    order_service.generate_order_number = lambda: next(sequence)
+    try:
+        first_res = client.post(
+            "/api/orders",
+            headers=staff_headers,
+            json={
+                "source": "takeout",
+                "auto_pay": False,
+                "items": [{"menu_item_id": milk_tea["id"], "quantity": 1}],
+            },
+        )
+        assert first_res.status_code == 201
+        assert first_res.json()["order_number"] == "ODTESTDUP1"
+
+        second_res = client.post(
+            "/api/orders",
+            headers=staff_headers,
+            json={
+                "source": "takeout",
+                "auto_pay": False,
+                "items": [{"menu_item_id": milk_tea["id"], "quantity": 1}],
+            },
+        )
+        assert second_res.status_code == 201
+        assert second_res.json()["order_number"] == "ODTESTOK2"
+    finally:
+        order_service.generate_order_number = original
+
+
+def test_pickup_board_public_endpoint_returns_active_pickup_orders() -> None:
+    staff_headers = auth_headers("staff1", "staff1234")
+    kitchen_headers = auth_headers("kitchen1", "kitchen1234")
+
+    menu_items = client.get("/api/menu/items", headers=staff_headers).json()
+    milk_tea = find_item(menu_items, "name", "Milk Tea")
+
+    create_res = client.post(
+        "/api/orders",
+        headers=staff_headers,
+        json={
+            "source": "takeout",
+            "auto_pay": True,
+            "items": [{"menu_item_id": milk_tea["id"], "quantity": 1}],
+        },
+    )
+    assert create_res.status_code == 201
+    order_id = create_res.json()["id"]
+
+    preparing_res = client.post(
+        f"/api/orders/{order_id}/status",
+        headers=kitchen_headers,
+        json={"status": "preparing"},
+    )
+    assert preparing_res.status_code == 200
+
+    board_res = client.get("/api/orders/pickup-board?minutes=180&limit=50")
+    assert board_res.status_code == 200
+    rows = board_res.json()
+    assert any(row["id"] == order_id and row["status"] == "preparing" for row in rows)
+
+
+def test_shift_open_and_close_summary() -> None:
+    manager_headers = auth_headers("manager1", "manager1234")
+    staff_headers = auth_headers("staff1", "staff1234")
+
+    open_res = client.post(
+        "/api/shift/open",
+        headers=manager_headers,
+        json={"shift_name": "早班", "opening_cash": 100},
+    )
+    assert open_res.status_code == 201
+    assert open_res.json()["status"] == "open"
+
+    menu_items = client.get("/api/menu/items", headers=staff_headers).json()
+    toast = find_item(menu_items, "name", "Ham Egg Toast")
+    milk_tea = find_item(menu_items, "name", "Milk Tea")
+
+    cash_order = client.post(
+        "/api/orders",
+        headers=staff_headers,
+        json={
+            "source": "takeout",
+            "auto_pay": True,
+            "payment_method": "cash",
+            "items": [{"menu_item_id": toast["id"], "quantity": 1}],
+        },
+    )
+    assert cash_order.status_code == 201
+
+    line_pay_order = client.post(
+        "/api/orders",
+        headers=staff_headers,
+        json={
+            "source": "takeout",
+            "auto_pay": True,
+            "payment_method": "line_pay",
+            "items": [{"menu_item_id": milk_tea["id"], "quantity": 1}],
+        },
+    )
+    assert line_pay_order.status_code == 201
+
+    close_res = client.post(
+        "/api/shift/close",
+        headers=manager_headers,
+        json={"actual_cash": 165},
+    )
+    assert close_res.status_code == 200
+    payload = close_res.json()
+    assert payload["status"] == "closed"
+    assert payload["paid_order_count"] == 2
+    assert payload["total_revenue"] == 105
+    assert payload["cash_revenue"] == 65
+    assert payload["non_cash_revenue"] == 40
+    assert payload["expected_cash"] == 165
+    assert payload["cash_difference"] == 0

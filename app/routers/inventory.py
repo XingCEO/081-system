@@ -41,8 +41,7 @@ def create_ingredient(
         raise HTTPException(status_code=409, detail="Ingredient already exists")
     row = Ingredient(**payload.model_dump())
     db.add(row)
-    db.commit()
-    db.refresh(row)
+    db.flush()
     create_audit_log(
         db,
         actor=current_user,
@@ -51,6 +50,8 @@ def create_ingredient(
         entity_id=row.id,
         payload=payload.model_dump(),
     )
+    db.commit()
+    db.refresh(row)
     return row
 
 
@@ -69,7 +70,9 @@ def update_ingredient(
     # If current_stock is being set directly, create a stock movement for audit trail
     if "current_stock" in changes and changes["current_stock"] is not None:
         old_stock = row.current_stock
-        new_stock = changes.pop("current_stock")
+        new_stock = float(changes.pop("current_stock"))
+        if new_stock < 0:
+            raise HTTPException(status_code=400, detail="current_stock cannot be negative")
         delta = new_stock - old_stock
         if abs(delta) > 1e-9:
             from app.services.inventory import create_movement
@@ -85,8 +88,6 @@ def update_ingredient(
 
     for key, value in changes.items():
         setattr(row, key, value)
-    db.commit()
-    db.refresh(row)
     create_audit_log(
         db,
         actor=current_user,
@@ -95,6 +96,8 @@ def update_ingredient(
         entity_id=row.id,
         payload=changes,
     )
+    db.commit()
+    db.refresh(row)
     return row
 
 
@@ -121,6 +124,8 @@ def create_stock_movement(
         entity_id=movement.id,
         payload=payload.model_dump(),
     )
+    db.commit()
+    db.refresh(movement)
     return movement
 
 

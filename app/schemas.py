@@ -26,6 +26,14 @@ class PaymentStatus(str, Enum):
     refunded = "refunded"
 
 
+class PaymentMethod(str, Enum):
+    cash = "cash"
+    line_pay = "line_pay"
+    credit_card = "credit_card"
+    easycard = "easycard"
+    other = "other"
+
+
 class MovementType(str, Enum):
     purchase = "purchase"
     adjustment = "adjustment"
@@ -221,6 +229,7 @@ class OrderComboCreate(BaseModel):
 class OrderCreate(BaseModel):
     source: SourceType = SourceType.takeout
     auto_pay: bool = True
+    payment_method: PaymentMethod = PaymentMethod.cash
     items: list[OrderItemCreate] = Field(default_factory=list)
     combos: list[OrderComboCreate] = Field(default_factory=list, max_length=50)
 
@@ -249,6 +258,7 @@ class OrderOut(BaseModel):
     source: str
     status: OrderStatus
     payment_status: PaymentStatus
+    payment_method: PaymentMethod
     total_amount: float
     created_at: datetime
     paid_at: datetime | None
@@ -260,6 +270,10 @@ class OrderOut(BaseModel):
 
 class OrderStatusUpdate(BaseModel):
     status: OrderStatus
+
+
+class OrderPayRequest(BaseModel):
+    payment_method: PaymentMethod = PaymentMethod.cash
 
 
 class OrderAmendItemIn(BaseModel):
@@ -294,6 +308,18 @@ class OrderDiffOut(BaseModel):
 class OrderAmendResponse(BaseModel):
     order: OrderOut
     diff: OrderDiffOut
+
+
+class PickupBoardOrderOut(BaseModel):
+    id: int
+    order_number: str
+    source: SourceType
+    status: OrderStatus
+    payment_status: PaymentStatus
+    created_at: datetime
+    completed_at: datetime | None
+
+    model_config = {"from_attributes": True}
 
 
 class TopItemOut(BaseModel):
@@ -337,5 +363,45 @@ class AuditLogOut(BaseModel):
     entity_id: str | None
     payload: dict | None
     created_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class ShiftStatus(str, Enum):
+    open = "open"
+    closed = "closed"
+
+
+class ShiftOpenRequest(BaseModel):
+    shift_name: str = Field(min_length=1, max_length=40)
+    opening_cash: float = Field(default=0.0, ge=0)
+    notes: str | None = Field(default=None, max_length=200)
+
+
+class ShiftCloseRequest(BaseModel):
+    actual_cash: float = Field(ge=0)
+    notes: str | None = Field(default=None, max_length=200)
+
+
+class ShiftSessionOut(BaseModel):
+    id: int
+    shift_name: str
+    status: ShiftStatus
+    opening_cash: float
+    expected_cash: float
+    actual_cash: float | None
+    cash_difference: float | None
+    paid_order_count: int
+    total_revenue: float
+    cash_revenue: float
+    non_cash_revenue: float
+    refund_amount: float
+    opened_by_user_id: int
+    opened_by_username: str
+    closed_by_user_id: int | None
+    closed_by_username: str | None
+    notes: str | None
+    opened_at: datetime
+    closed_at: datetime | None
 
     model_config = {"from_attributes": True}

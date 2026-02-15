@@ -9,6 +9,11 @@ const inventoryValue = document.getElementById("inventoryValue");
 const topItems = document.getElementById("topItems");
 const lowStock = document.getElementById("lowStock");
 const auditList = document.getElementById("auditList");
+const shiftCurrent = document.getElementById("shiftCurrent");
+const shiftOpenForm = document.getElementById("shiftOpenForm");
+const shiftCloseForm = document.getElementById("shiftCloseForm");
+const shiftMsg = document.getElementById("shiftMsg");
+const shiftHistory = document.getElementById("shiftHistory");
 
 const fmt = new Intl.NumberFormat("zh-TW", { maximumFractionDigits: 2 });
 
@@ -181,8 +186,125 @@ function auditActionLabel(action) {
       "inventory.ingredient.create": "新增原料",
       "inventory.ingredient.update": "更新原料",
       "inventory.movement.create": "新增庫存異動",
+      "shift.open": "開啟班別",
+      "shift.close": "關閉班別",
     }[action] || action
   );
+}
+
+function formatDateTime(value) {
+  if (!value) return "-";
+  const dt = new Date(value);
+  if (Number.isNaN(dt.getTime())) return "-";
+  return dt.toLocaleString("zh-TW");
+}
+
+function renderShiftCurrent(row) {
+  if (!row) {
+    shiftCurrent.innerHTML = "<p>目前沒有開啟中的班別。</p>";
+    shiftOpenForm.style.display = "grid";
+    shiftCloseForm.style.display = "none";
+    return;
+  }
+  const statusLabel = row.status === "open" ? "進行中" : "已關閉";
+  shiftCurrent.innerHTML = `
+    <article>
+      <div><strong>${escapeHtml(row.shift_name)}</strong>（${statusLabel}）</div>
+      <div>開班時間：${escapeHtml(formatDateTime(row.opened_at))}</div>
+      <div>開班現金：$${formatMoney(row.opening_cash)}</div>
+      <div>應有現金：$${formatMoney(row.expected_cash)}</div>
+      <div>現金差額：${row.cash_difference == null ? "-" : `$${formatMoney(row.cash_difference)}`}</div>
+      <div>營收：$${formatMoney(row.total_revenue)}（現金 $${formatMoney(row.cash_revenue)} / 非現金 $${formatMoney(row.non_cash_revenue)}）</div>
+      <div>已付款筆數：${formatMoney(row.paid_order_count)}</div>
+    </article>
+  `;
+  shiftOpenForm.style.display = "none";
+  shiftCloseForm.style.display = row.status === "open" ? "grid" : "none";
+}
+
+async function fetchShiftCurrent() {
+  const res = await Auth.authFetch("/api/shift/current");
+  if (!res.ok) throw new Error(await Auth.readErrorMessage(res));
+  renderShiftCurrent(await res.json());
+}
+
+async function fetchShiftHistory() {
+  const res = await Auth.authFetch("/api/shift/history?limit=20");
+  if (!res.ok) throw new Error(await Auth.readErrorMessage(res));
+  const rows = await res.json();
+  const signature = rows
+    .map((row) => `${row.id}:${row.status}:${row.closed_at || row.opened_at || ""}`)
+    .join("|");
+
+  renderListStable({
+    container: shiftHistory,
+    signature,
+    rows,
+    emptyText: "目前沒有交班紀錄",
+    renderRow: (row) => {
+      const li = document.createElement("li");
+      li.innerHTML = `
+        <div><strong>${escapeHtml(row.shift_name)}</strong>｜${row.status === "open" ? "進行中" : "已關班"}</div>
+        <div>開班：${escapeHtml(formatDateTime(row.opened_at))} / 關班：${escapeHtml(formatDateTime(row.closed_at))}</div>
+        <div>營收：$${formatMoney(row.total_revenue)}，差額：${row.cash_difference == null ? "-" : `$${formatMoney(row.cash_difference)}`}</div>
+      `;
+      return li;
+    },
+  });
+}
+
+async function submitShiftOpen(evt) {
+  evt.preventDefault();
+  shiftMsg.textContent = "開班中...";
+  try {
+    const payload = {
+      shift_name: document.getElementById("shiftName").value.trim(),
+      opening_cash: Number(document.getElementById("openingCash").value || 0),
+      notes: document.getElementById("shiftOpenNote").value.trim() || null,
+    };
+    if (!payload.shift_name) {
+      shiftMsg.textContent = "失敗：班別名稱必填";
+      return;
+    }
+    const res = await Auth.authFetch("/api/shift/open", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      shiftMsg.textContent = `失敗：${await Auth.readErrorMessage(res)}`;
+      return;
+    }
+    shiftMsg.textContent = "班別已開啟";
+    await Promise.all([fetchShiftCurrent(), fetchShiftHistory(), fetchAuditLogs()]);
+  } catch (err) {
+    shiftMsg.textContent = `失敗：${String(err.message || err)}`;
+  }
+}
+
+async function submitShiftClose(evt) {
+  evt.preventDefault();
+  shiftMsg.textContent = "關班對帳中...";
+  try {
+    const payload = {
+      actual_cash: Number(document.getElementById("actualCash").value || 0),
+      notes: document.getElementById("shiftCloseNote").value.trim() || null,
+    };
+    const res = await Auth.authFetch("/api/shift/close", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      shiftMsg.textContent = `失敗：${await Auth.readErrorMessage(res)}`;
+      return;
+    }
+    shiftMsg.textContent = "關班完成";
+    shiftCloseForm.reset();
+    await Promise.all([fetchShiftCurrent(), fetchShiftHistory(), fetchAuditLogs()]);
+  } catch (err) {
+    shiftMsg.textContent = `失敗：${String(err.message || err)}`;
+  }
 }
 
 async function fetchAuditLogs() {
@@ -214,6 +336,8 @@ async function fetchAuditLogs() {
 }
 
 movementForm.addEventListener("submit", submitMovement);
+shiftOpenForm.addEventListener("submit", submitShiftOpen);
+shiftCloseForm.addEventListener("submit", submitShiftClose);
 
 function setupWebsocket() {
   Auth.connectEventSocket({
@@ -224,6 +348,8 @@ function setupWebsocket() {
           fetchIngredients();
           fetchOverview();
           fetchAuditLogs();
+          fetchShiftCurrent();
+          fetchShiftHistory();
         }
       } catch (_) {
         // Ignore malformed payload.
@@ -234,10 +360,18 @@ function setupWebsocket() {
 
 async function bootstrap() {
   await Auth.ensureAuth(["manager", "owner"]);
-  await Promise.all([fetchIngredients(), fetchOverview(), fetchAuditLogs()]);
+  await Promise.all([
+    fetchIngredients(),
+    fetchOverview(),
+    fetchAuditLogs(),
+    fetchShiftCurrent(),
+    fetchShiftHistory(),
+  ]);
   setupWebsocket();
   setInterval(fetchOverview, 45000);
   setInterval(fetchAuditLogs, 30000);
+  setInterval(fetchShiftCurrent, 30000);
+  setInterval(fetchShiftHistory, 60000);
 }
 
 bootstrap().catch((err) => {
