@@ -1,22 +1,26 @@
-@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Noto+Sans+TC:wght@400;500;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+TC:wght@400;500;700&display=swap");
 
 :root {
-  --sys-color-bg: #08131b;
-  --sys-color-panel: rgba(16, 34, 48, 0.78);
-  --sys-color-panel-soft: rgba(13, 27, 39, 0.84);
-  --sys-color-line: rgba(168, 194, 212, 0.3);
-  --sys-color-text: #f6f9ff;
-  --sys-color-text-soft: #afc0cf;
-  --sys-color-accent: #3fc9a0;
-  --sys-color-accent-strong: #229f7d;
-  --sys-color-info: #5baeff;
-  --sys-color-warn: #f5a35b;
-  --sys-color-danger: #f06b6c;
+  --sys-color-bg: #F8F9FA;
+  --sys-color-surface: #FFFFFF;
+  --sys-color-panel: #FFFFFF;
+  --sys-color-panel-soft: #FFFFFF;
+  --sys-color-line: #E2E8F0;
+  --sys-color-text: #1E293B;
+  --sys-color-text-soft: #64748B;
+  --sys-color-muted: #94A3B8;
+  --sys-color-accent: #10B981;
+  --sys-color-accent-strong: #059669;
+  --sys-color-info: #3B82F6;
+  --sys-color-warn: #F59E0B;
+  --sys-color-danger: #EF4444;
+  --sys-color-price: #F59E0B;
 
   --sys-radius-s: 8px;
   --sys-radius-m: 12px;
   --sys-radius-l: 18px;
-  --sys-shadow-panel: 0 16px 38px rgba(0, 0, 0, 0.28);
+  --sys-shadow-panel: 0 1px 3px rgba(0, 0, 0, 0.06), 0 4px 12px rgba(0, 0, 0, 0.04);
+  --sys-shadow-card: 0 1px 2px rgba(0, 0, 0, 0.04), 0 2px 8px rgba(0, 0, 0, 0.03);
 
   --sys-motion-fast: 120ms;
   --sys-motion-base: 180ms;
@@ -25,13 +29,13 @@
 }
 
 ::selection {
-  background: rgba(91, 174, 255, 0.26);
+  background: rgba(16, 185, 129, 0.18);
   color: var(--sys-color-text);
 }
 
 :where(a, button, input, select, textarea):focus-visible {
   outline: none;
-  box-shadow: 0 0 0 3px rgba(91, 174, 255, 0.3);
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.25);
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -210,7 +210,7 @@ function ensureStyles() {
   const style = document.createElement("style");
   style.id = "auth-style";
   style.textContent = `
-    @import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Noto+Sans+TC:wght@400;500;700&display=swap");
+    @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+TC:wght@400;500;700&display=swap");
 
     :root {
       --auth-pad: clamp(10px, 1.4vw, 16px);
@@ -228,11 +228,8 @@ function ensureStyles() {
       padding: var(--auth-pad);
       display: grid;
       place-items: center;
-      background:
-        radial-gradient(1100px 560px at 8% -15%, rgba(255, 122, 89, 0.35), transparent 62%),
-        radial-gradient(980px 520px at 106% 110%, rgba(47, 179, 175, 0.3), transparent 62%),
-        rgba(8, 12, 18, 0.62);
-      backdrop-filter: blur(4px);
+      background: rgba(0, 0, 0, 0.18);
+      backdrop-filter: blur(6px);
       animation: authBackdropIn .26s ease both;
     }
 
@@ -240,23 +237,20 @@ function ensureStyles() {
       width: min(920px, 100%);
       border-radius: var(--auth-radius);
       overflow: hidden;
-      border: 1px solid rgba(255, 255, 255, 0.22);
+      border: 1px solid #E2E8F0;
       background: #ffffff;
       display: grid;
       grid-template-columns: 1.18fr 1fr;
-      box-shadow: 0 30px 90px rgba(0, 0, 0, 0.42);
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
       animation: authModalIn .32s cubic-bezier(.17, .84, .32, 1) both;
-      font-family: "Plus Jakarta Sans", "Noto Sans TC", sans-serif;
+      font-family: "Inter", "Noto Sans TC", sans-serif;
     }
 
     .auth-brand {
       position: relative;
       padding: clamp(22px, 2.2vw, 34px) clamp(18px, 2vw, 32px) clamp(18px, 1.9vw, 30px);
-      color: #f7fbff;
-      background:
-        radial-gradient(320px 220px at 78% -20%, rgba(255, 175, 123, 0.52), transparent 64%),
-        radial-gradient(280px 240px at 6% 110%, rgba(70, 216, 204, 0.45), transparent 68%),
-        linear-gradient(155deg, #16252d, #11353c 60%, #0b2429);
+      color: #FFFFFF;
+      background: linear-gradient(155deg, #059669, #10B981 60%, #34D399);
     }
 
     .auth-brand::after {
@@ -276,7 +270,7 @@ function ensureStyles() {
       font-size: var(--auth-text-xs);
       letter-spacing: 0.22em;
       text-transform: uppercase;
-      color: rgba(235, 247, 255, 0.72);
+      color: rgba(255, 255, 255, 0.8);
     }
 
     .auth-brand h2 {
@@ -291,7 +285,7 @@ function ensureStyles() {
       margin: 0 0 20px;
       font-size: var(--auth-text-md);
       line-height: 1.65;
-      color: rgba(230, 246, 255, 0.9);
+      color: rgba(255, 255, 255, 0.9);
       max-width: 40ch;
     }
 
@@ -304,10 +298,10 @@ function ensureStyles() {
     }
 
     .auth-role-list li {
-      border: 1px solid rgba(225, 244, 255, 0.28);
+      border: 1px solid rgba(255, 255, 255, 0.28);
       border-radius: 14px;
       padding: clamp(7px, .68vw, 10px) clamp(9px, .85vw, 12px);
-      background: rgba(7, 24, 29, 0.34);
+      background: rgba(0, 0, 0, 0.1);
       display: grid;
       gap: 2px;
     }
@@ -319,16 +313,14 @@ function ensureStyles() {
 
     .auth-role-list span {
       font-size: var(--auth-text-xs);
-      color: rgba(223, 241, 249, 0.84);
+      color: rgba(255, 255, 255, 0.84);
       line-height: 1.45;
     }
 
     .auth-panel {
       padding: clamp(18px, 2vw, 30px) clamp(16px, 1.8vw, 28px);
-      color: #20303b;
-      background:
-        radial-gradient(420px 260px at 100% -18%, rgba(255, 192, 143, 0.2), transparent 68%),
-        #f7fafc;
+      color: #1E293B;
+      background: #FFFFFF;
     }
 
     .auth-panel form {
@@ -338,25 +330,25 @@ function ensureStyles() {
 
     .auth-panel label {
       font-size: var(--auth-text-sm);
-      color: #4f6470;
+      color: #64748B;
       font-weight: 600;
     }
 
     .auth-panel input {
       width: 100%;
-      border: 1px solid #c4d0da;
+      border: 1px solid #E2E8F0;
       border-radius: clamp(9px, .8vw, 12px);
       padding: clamp(9px, .9vw, 11px) clamp(10px, .95vw, 12px);
       font-size: var(--auth-text-md);
-      color: #1d2d37;
+      color: #1E293B;
       background: #ffffff;
       transition: border-color .18s ease, box-shadow .18s ease;
     }
 
     .auth-panel input:focus-visible {
       outline: none;
-      border-color: #2899a5;
-      box-shadow: 0 0 0 3px rgba(40, 153, 165, 0.2);
+      border-color: #10B981;
+      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
     }
 
     .auth-password-wrap {
@@ -367,12 +359,12 @@ function ensureStyles() {
     }
 
     .auth-ghost-btn {
-      border: 1px solid #bfd0da;
+      border: 1px solid #E2E8F0;
       border-radius: clamp(8px, .72vw, 11px);
       padding: clamp(8px, .8vw, 10px) clamp(10px, .9vw, 12px);
       min-width: 62px;
       background: #ffffff;
-      color: #304654;
+      color: #1E293B;
       font-size: var(--auth-text-xs);
       font-weight: 700;
       cursor: pointer;
@@ -380,8 +372,8 @@ function ensureStyles() {
     }
 
     .auth-ghost-btn:hover {
-      background: #edf4f8;
-      border-color: #9db6c5;
+      background: #F1F5F9;
+      border-color: #CBD5E1;
     }
 
     .auth-submit-btn {
@@ -389,20 +381,20 @@ function ensureStyles() {
       border: none;
       border-radius: clamp(9px, .8vw, 12px);
       padding: clamp(10px, .95vw, 12px) clamp(11px, 1vw, 14px);
-      background: linear-gradient(135deg, #ef7a52, #d6506d 48%, #2ba8aa);
+      background: #10B981;
       color: #ffffff;
       font-size: clamp(13px, .8vw, 15px);
       font-weight: 800;
       letter-spacing: 0.02em;
       cursor: pointer;
       transition: transform .16s ease, box-shadow .16s ease, filter .16s ease;
-      box-shadow: 0 10px 24px rgba(74, 42, 58, 0.28);
+      box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);
     }
 
     .auth-submit-btn:hover {
       transform: translateY(-1px);
-      filter: saturate(1.06);
-      box-shadow: 0 14px 28px rgba(74, 42, 58, 0.32);
+      filter: brightness(1.06);
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
     }
 
     .auth-submit-btn:disabled,
@@ -418,24 +410,24 @@ function ensureStyles() {
       margin: 10px 0 0;
       font-size: var(--auth-text-sm);
       line-height: 1.45;
-      color: #6e7f89;
+      color: #64748B;
     }
 
     .auth-message.info {
-      color: #3f7287;
+      color: #3B82F6;
     }
 
     .auth-message.success {
-      color: #127563;
+      color: #059669;
     }
 
     .auth-message.error {
-      color: #b13f2e;
+      color: #DC2626;
     }
 
     .auth-demo {
       margin-top: 14px;
-      border-top: 1px dashed #c8d4dc;
+      border-top: 1px dashed #E2E8F0;
       padding-top: clamp(8px, .8vw, 11px);
     }
 
@@ -445,7 +437,7 @@ function ensureStyles() {
       font-size: var(--auth-text-xs);
       letter-spacing: 0.08em;
       text-transform: uppercase;
-      color: #758a95;
+      color: #94A3B8;
       font-weight: 700;
     }
 
@@ -454,7 +446,7 @@ function ensureStyles() {
       padding-left: 16px;
       display: grid;
       gap: 4px;
-      color: #455a66;
+      color: #64748B;
       font-size: var(--auth-text-sm);
     }
 

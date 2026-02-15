@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content="早餐店智慧系統：整合 POS、KDS、庫存管理與營運分析。" />
-  <meta name="theme-color" content="#08131b" />
+  <meta name="theme-color" content="#F8F9FA" />
   <link rel="canonical" href="https://081-system.zeabur.app/" />
   <meta property="og:type" content="website" />
   <meta property="og:locale" content="zh_TW" />
@@ -29,19 +29,19 @@
   <link rel="manifest" href="/assets/site.webmanifest" />
   <title>早餐店智慧系統</title>
   <style>
-    @import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Noto+Sans+TC:wght@400;500;700&display=swap");
+    @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+TC:wght@400;500;700&display=swap");
 
     :root {
-      --ink: #f8fbff;
-      --ink-soft: #c9d8e3;
-      --line: rgba(184, 212, 229, 0.28);
-      --panel: rgba(14, 28, 38, 0.72);
-      --panel-strong: rgba(12, 22, 32, 0.9);
-      --pos: #4cc7a2;
-      --kds: #ff9c5d;
-      --admin: #5ea5ff;
-      --pickup: #7ae8e4;
-      --docs: #f2d47f;
+      --ink: #1E293B;
+      --ink-soft: #64748B;
+      --line: #E2E8F0;
+      --panel: #FFFFFF;
+      --panel-strong: #F1F5F9;
+      --pos: #10B981;
+      --kds: #F59E0B;
+      --admin: #3B82F6;
+      --pickup: #06B6D4;
+      --docs: #F59E0B;
       --page-pad: clamp(10px, 1.2vw, 26px);
       --gap-sm: clamp(8px, 0.7vw, 14px);
       --gap-md: clamp(10px, 1vw, 20px);
@@ -58,26 +58,14 @@
       margin: 0;
       min-height: 100vh;
       color: var(--ink);
-      font-family: "Plus Jakarta Sans", "Noto Sans TC", sans-serif;
-      background:
-        radial-gradient(980px 520px at -8% -20%, rgba(91, 181, 255, 0.33), transparent 63%),
-        radial-gradient(980px 560px at 106% -12%, rgba(255, 130, 86, 0.26), transparent 63%),
-        radial-gradient(780px 500px at 80% 120%, rgba(80, 220, 172, 0.24), transparent 60%),
-        linear-gradient(145deg, #050b11, #0c1822 54%, #09121a);
+      font-family: "Inter", "Noto Sans TC", sans-serif;
+      background: #F8F9FA;
       padding: var(--page-pad);
       overflow-x: hidden;
     }
 
     body::before {
-      content: "";
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      opacity: 0.25;
-      background-image: linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
-      background-size: 40px 40px;
-      z-index: -1;
+      display: none;
     }
 
     .shell {
@@ -86,9 +74,8 @@
       border: 1px solid var(--line);
       border-radius: 30px;
       overflow: hidden;
-      background: linear-gradient(170deg, rgba(9, 20, 31, 0.72), rgba(10, 19, 31, 0.58));
-      backdrop-filter: blur(12px);
-      box-shadow: 0 34px 90px rgba(0, 0, 0, 0.42);
+      background: var(--panel);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 8px 24px rgba(0, 0, 0, 0.06);
       animation: rise .7s ease both;
     }
 
@@ -98,12 +85,12 @@
       gap: var(--gap-md);
       padding: var(--panel-pad);
       border-bottom: 1px solid var(--line);
-      background: linear-gradient(145deg, rgba(7, 18, 30, 0.88), rgba(9, 29, 40, 0.72));
+      background: linear-gradient(145deg, #ECFDF5, #F0FDF4 60%, #F8F9FA);
     }
 
     .kicker {
       margin: 0 0 12px;
-      color: #9ec4da;
+      color: #059669;
       letter-spacing: 0.18em;
       font-size: var(--text-xs);
       text-transform: uppercase;
@@ -136,12 +123,12 @@
     }
 
     .chip-row li {
-      border: 1px solid rgba(166, 201, 222, 0.32);
+      border: 1px solid #D1FAE5;
       border-radius: 999px;
       padding: 5px 12px;
       font-size: var(--text-xs);
-      color: #d8e9f6;
-      background: rgba(14, 32, 45, 0.48);
+      color: #065F46;
+      background: #ECFDF5;
     }
 
     .hero-side {
@@ -155,12 +142,13 @@
       border: 1px solid var(--line);
       border-radius: clamp(11px, 1vw, 15px);
       background: var(--panel);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
       animation: rise .6s ease both;
     }
 
     .hero-card small {
       display: block;
-      color: #a4c4d5;
+      color: #059669;
       margin-bottom: 6px;
       font-size: var(--text-xs);
       letter-spacing: 0.08em;
@@ -190,6 +178,7 @@
       position: relative;
       overflow: hidden;
       border: 1px solid var(--line);
+      border-left-width: 4px;
       border-radius: clamp(13px, 1.1vw, 18px);
       text-decoration: none;
       color: var(--ink);
@@ -200,6 +189,7 @@
       gap: var(--gap-sm);
       transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease;
       animation: rise .65s ease both;
+      background: var(--panel);
     }
 
     .portal::before {
@@ -210,15 +200,14 @@
       border-radius: 999px;
       top: -56px;
       right: -56px;
-      opacity: .34;
+      opacity: .08;
       filter: blur(1px);
       transition: transform .26s ease;
     }
 
     .portal:hover {
       transform: translateY(-4px);
-      border-color: rgba(226, 240, 250, 0.56);
-      box-shadow: 0 16px 30px rgba(0, 0, 0, 0.3);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
     }
 
     .portal:hover::before {
@@ -243,7 +232,8 @@
     }
 
     .portal-pos {
-      background: linear-gradient(140deg, rgba(16, 43, 45, 0.86), rgba(13, 34, 32, 0.88));
+      border-left-color: var(--pos);
+      background: linear-gradient(145deg, #F0FDF4, #FFFFFF 60%);
     }
 
     .portal-pos::before {
@@ -251,7 +241,8 @@
     }
 
     .portal-kds {
-      background: linear-gradient(140deg, rgba(44, 30, 19, 0.86), rgba(35, 25, 16, 0.9));
+      border-left-color: var(--kds);
+      background: linear-gradient(145deg, #FFFBEB, #FFFFFF 60%);
     }
 
     .portal-kds::before {
@@ -259,7 +250,8 @@
     }
 
     .portal-admin {
-      background: linear-gradient(140deg, rgba(15, 29, 43, 0.88), rgba(13, 25, 38, 0.9));
+      border-left-color: var(--admin);
+      background: linear-gradient(145deg, #EFF6FF, #FFFFFF 60%);
     }
 
     .portal-admin::before {
@@ -267,7 +259,8 @@
     }
 
     .portal-pickup {
-      background: linear-gradient(140deg, rgba(10, 40, 43, 0.88), rgba(10, 30, 35, 0.9));
+      border-left-color: var(--pickup);
+      background: linear-gradient(145deg, #ECFEFF, #FFFFFF 60%);
     }
 
     .portal-pickup::before {
@@ -275,7 +268,8 @@
     }
 
     .portal-docs {
-      background: linear-gradient(140deg, rgba(46, 38, 19, 0.86), rgba(31, 26, 14, 0.92));
+      border-left-color: var(--docs);
+      background: linear-gradient(145deg, #FFFBEB, #FFFFFF 60%);
     }
 
     .portal-docs::before {
@@ -289,7 +283,7 @@
       justify-content: space-between;
       flex-wrap: wrap;
       gap: var(--gap-sm);
-      color: #9ab6c9;
+      color: var(--ink-soft);
       font-size: var(--text-xs);
       background: var(--panel-strong);
     }

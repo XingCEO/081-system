@@ -78,7 +78,7 @@ function showToast(message) {
   const toast = document.createElement("div");
   toast.className = "kds-toast";
   toast.textContent = message;
-  toast.style.cssText = "position:fixed;top:16px;left:50%;transform:translateX(-50%);background:#b13f2e;color:#fff;padding:10px 20px;border-radius:8px;z-index:9999;font-size:14px;box-shadow:0 4px 12px rgba(0,0,0,.3);";
+  toast.style.cssText = "position:fixed;top:16px;left:50%;transform:translateX(-50%);background:#EF4444;color:#fff;padding:10px 20px;border-radius:8px;z-index:9999;font-size:14px;box-shadow:0 4px 12px rgba(0,0,0,.12);";
   document.body.appendChild(toast);
   setTimeout(() => toast.remove(), 5000);
 }
