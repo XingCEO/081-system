@@ -48,20 +48,31 @@
       --panel-pad: clamp(20px, 2vw, 34px);
       --text-xs: clamp(10px, 0.5vw, 12px);
       --text-sm: clamp(12px, 0.7vw, 15px);
+      --home-scale: 1;
     }
 
     * {
       box-sizing: border-box;
     }
 
+    html {
+      height: 100%;
+      overflow: hidden;
+    }
+
     body {
       margin: 0;
       min-height: 100vh;
+      height: 100vh;
+      height: 100dvh;
+      width: 100%;
       color: var(--ink);
       font-family: "Inter", "Noto Sans TC", sans-serif;
       background: #F8F9FA;
-      padding: var(--page-pad);
-      overflow-x: hidden;
+      padding: clamp(8px, 0.9vw, 14px);
+      overflow: hidden;
+      display: grid;
+      place-items: center;
     }
 
     body::before {
@@ -69,13 +80,18 @@
     }
 
     .shell {
-      max-width: 1160px;
+      width: min(1160px, 100%);
       margin: 0 auto;
       border: 1px solid var(--line);
       border-radius: 30px;
       overflow: hidden;
       background: var(--panel);
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 8px 24px rgba(0, 0, 0, 0.06);
+      height: 100%;
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr) auto;
+      transform: scale(var(--home-scale));
+      transform-origin: center center;
       animation: rise .7s ease both;
     }
 
@@ -83,7 +99,7 @@
       display: grid;
       grid-template-columns: 1.3fr 1fr;
       gap: var(--gap-md);
-      padding: var(--panel-pad);
+      padding: clamp(14px, 1.4vw, 22px);
       border-bottom: 1px solid var(--line);
       background: linear-gradient(145deg, #ECFDF5, #F0FDF4 60%, #F8F9FA);
     }
@@ -99,7 +115,7 @@
 
     h1 {
       margin: 0 0 12px;
-      font-size: clamp(32px, 5.4vw, 58px);
+      font-size: clamp(30px, 4.8vw, 52px);
       line-height: 1.05;
       letter-spacing: -0.04em;
       text-wrap: balance;
@@ -108,13 +124,13 @@
     .lead {
       margin: 0;
       color: var(--ink-soft);
-      line-height: 1.7;
+      line-height: 1.6;
       font-size: var(--text-sm);
       max-width: 56ch;
     }
 
     .chip-row {
-      margin: 18px 0 0;
+      margin: 14px 0 0;
       padding: 0;
       list-style: none;
       display: flex;
@@ -138,7 +154,7 @@
     }
 
     .hero-card {
-      padding: clamp(10px, 0.9vw, 14px);
+      padding: clamp(8px, 0.8vw, 12px);
       border: 1px solid var(--line);
       border-radius: clamp(11px, 1vw, 15px);
       background: var(--panel);
@@ -156,22 +172,23 @@
     }
 
     .hero-card strong {
-      font-size: 25px;
+      font-size: clamp(20px, 1.8vw, 24px);
       letter-spacing: -0.03em;
     }
 
     .hero-card p {
-      margin: 8px 0 0;
+      margin: 6px 0 0;
       color: var(--ink-soft);
-      line-height: 1.5;
+      line-height: 1.42;
       font-size: var(--text-sm);
     }
 
     .portal-grid {
-      padding: clamp(16px, 1.4vw, 24px) var(--panel-pad) var(--panel-pad);
+      padding: clamp(10px, 0.9vw, 14px) clamp(14px, 1.2vw, 22px) clamp(12px, 1vw, 16px);
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(5, minmax(0, 1fr));
       gap: var(--gap-sm);
+      min-height: 0;
     }
 
     .portal {
@@ -182,8 +199,8 @@
       border-radius: clamp(13px, 1.1vw, 18px);
       text-decoration: none;
       color: var(--ink);
-      min-height: clamp(140px, 12vw, 176px);
-      padding: clamp(12px, 0.95vw, 16px);
+      min-height: clamp(94px, 8.4vw, 124px);
+      padding: clamp(9px, 0.75vw, 13px);
       display: grid;
       align-content: end;
       gap: var(--gap-sm);
@@ -216,7 +233,7 @@
 
     .portal h2 {
       margin: 0;
-      font-size: clamp(17px, 1.45vw, 22px);
+      font-size: clamp(15px, 1.25vw, 19px);
       letter-spacing: -0.02em;
       position: relative;
       z-index: 2;
@@ -225,8 +242,8 @@
     .portal p {
       margin: 0;
       color: var(--ink-soft);
-      line-height: 1.55;
-      font-size: var(--text-sm);
+      line-height: 1.4;
+      font-size: clamp(11px, 0.62vw, 13px);
       position: relative;
       z-index: 2;
     }
@@ -278,7 +295,7 @@
 
     .footer {
       border-top: 1px solid var(--line);
-      padding: clamp(11px, 0.9vw, 14px) var(--panel-pad) clamp(14px, 1vw, 18px);
+      padding: clamp(8px, 0.65vw, 10px) clamp(14px, 1.2vw, 22px);
       display: flex;
       justify-content: space-between;
       flex-wrap: wrap;
@@ -301,22 +318,22 @@
 
     @media (max-width: 980px) {
       body {
-        padding: 12px;
+        padding: 8px;
       }
 
       .hero {
         grid-template-columns: 1fr;
-        padding: clamp(16px, 3.4vw, 24px);
+        padding: clamp(12px, 2.8vw, 18px);
       }
 
       .portal-grid {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(3, 1fr);
       }
     }
 
     @media (max-width: 640px) {
       .portal-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, 1fr);
       }
     }
   </style>
@@ -385,5 +402,40 @@
       <span>Breakfast Store System</span>
     </footer>
   </main>
+  <script>
+    (() => {
+      const shell = document.querySelector(".shell");
+      if (!shell) return;
+
+      const root = document.documentElement;
+      const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+      const pagePadding = () => clamp(window.innerWidth * 0.009, 8, 14);
+
+      const fitHomepage = () => {
+        const pad = pagePadding();
+        const viewportWidth = Math.max(320, window.innerWidth - pad * 2);
+        const viewportHeight = Math.max(320, window.innerHeight - pad * 2);
+        const targetWidth = Math.min(1160, viewportWidth);
+
+        root.style.setProperty("--home-scale", "1");
+        shell.style.width = `${targetWidth}px`;
+
+        const naturalHeight = Math.max(shell.scrollHeight, shell.offsetHeight);
+        const scale = Math.min(1, viewportHeight / naturalHeight);
+        root.style.setProperty("--home-scale", scale.toFixed(4));
+      };
+
+      let rafId = 0;
+      const queueFit = () => {
+        cancelAnimationFrame(rafId);
+        rafId = requestAnimationFrame(fitHomepage);
+      };
+
+      window.addEventListener("resize", queueFit, { passive: true });
+      window.addEventListener("orientationchange", queueFit, { passive: true });
+      window.addEventListener("load", queueFit);
+      queueFit();
+    })();
+  </script>
 </body>
 </html>
