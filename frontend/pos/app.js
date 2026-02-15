@@ -130,6 +130,18 @@ function formatMoney(value) {
   return currency.format(Number(value || 0));
 }
 
+function shortOrderNo(orderNumber, fallbackId = 0) {
+  const digits = String(orderNumber || "").replace(/\D/g, "");
+  if (digits.length >= 3) return digits.slice(-3);
+  const idNum = Number(fallbackId || 0);
+  if (Number.isFinite(idNum) && idNum > 0) return String(idNum % 1000).padStart(3, "0");
+  return String(orderNumber || "---");
+}
+
+function orderTag(order) {
+  return `#${shortOrderNo(order?.order_number, order?.id)}`;
+}
+
 function formatTaipeiTime(value) {
   const parsed = new Date(value);
   if (Number.isNaN(parsed.getTime())) return "-";
@@ -670,7 +682,7 @@ function refillFromOrder(order) {
   if (els.sourceSelect) els.sourceSelect.value = order.source || "takeout";
   switchTab("current");
   renderCart();
-  setMessage(`已復單：#${order.order_number}`, "success");
+  setMessage(`已復單：${orderTag(order)}`, "success");
 }
 
 function renderRecentOrders() {
@@ -693,7 +705,7 @@ function renderRecentOrders() {
     card.className = "order-card";
     card.innerHTML = `
       <div class="order-head">
-        <h3 class="order-number">#${escapeHtml(order.order_number)}</h3>
+        <h3 class="order-number">${escapeHtml(orderTag(order))}</h3>
         <div class="badge">${escapeHtml(STATUS_LABEL[order.status] || order.status)}</div>
       </div>
       <div class="order-meta">
@@ -769,7 +781,7 @@ function beginAmendOrder(order) {
   if (!order) return;
   const amendable = ["pending", "preparing", "ready"].includes(order.status);
   if (!amendable) {
-    setMessage(`訂單 #${order.order_number} 目前狀態不可改單，請用一鍵復單開新單`, "error");
+    setMessage(`訂單 ${orderTag(order)} 目前狀態不可改單，請用一鍵復單開新單`, "error");
     return;
   }
 
@@ -780,11 +792,11 @@ function beginAmendOrder(order) {
 
   if (state.cart.length === 0) {
     refillFromOrder(order);
-    setMessage(`已載入 #${order.order_number}，請調整後再按改單`, "success");
+    setMessage(`已載入 ${orderTag(order)}，請調整後再按改單`, "success");
     return;
   }
 
-  amendOrder(order.id, order.order_number);
+  amendOrder(order.id, orderTag(order));
 }
 
 function buildCartItemsPayload() {
@@ -978,7 +990,7 @@ async function submitOrder() {
     state.comboCart = [];
     renderCart();
     await fetchRecentOrders();
-    setMessage(`出單成功：${data.order_number}`, "success");
+    setMessage(`出單成功：#${shortOrderNo(data.order_number, data.id)}`, "success");
   } catch (err) {
     setMessage(`出單失敗：${String(err.message || err)}`, "error");
   } finally {

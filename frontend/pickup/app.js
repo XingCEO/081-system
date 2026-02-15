@@ -15,6 +15,14 @@ function escapeHtml(value) {
     .replaceAll("'", "&#39;");
 }
 
+function shortOrderNo(orderNumber, fallbackId = 0) {
+  const digits = String(orderNumber || "").replace(/\D/g, "");
+  if (digits.length >= 3) return digits.slice(-3);
+  const idNum = Number(fallbackId || 0);
+  if (Number.isFinite(idNum) && idNum > 0) return String(idNum % 1000).padStart(3, "0");
+  return String(orderNumber || "---");
+}
+
 function formatTime(value) {
   const dt = new Date(value);
   if (Number.isNaN(dt.getTime())) return "--:--";
@@ -33,7 +41,7 @@ function renderTickets(container, rows, emptyText) {
     const card = document.createElement("article");
     card.className = "ticket";
     card.innerHTML = `
-      <div class="no">#${escapeHtml(row.order_number)}</div>
+      <div class="no">#${escapeHtml(shortOrderNo(row.order_number, row.id))}</div>
       <div class="meta">${escapeHtml(row.source === "dine_in" ? "內用" : row.source === "delivery" ? "外送" : "外帶")}・${escapeHtml(formatTime(row.created_at))}</div>
     `;
     fragment.appendChild(card);
