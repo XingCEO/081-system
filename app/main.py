@@ -85,6 +85,10 @@ async def security_headers(request: Request, call_next):
         "connect-src 'self' ws: wss:; "
         "frame-ancestors 'none'"
     )
+    if not request.url.path.startswith("/api") and not request.url.path.startswith("/ws"):
+        # Prevent stale frontend bundles on cashier devices.
+        response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate"
+        response.headers["Pragma"] = "no-cache"
     return response
 
 
