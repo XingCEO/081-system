@@ -62,6 +62,7 @@ function translateErrorText(text) {
     ["Invalid or expired token", "登入憑證失效，請重新登入"],
     ["Permission denied", "你沒有這個操作權限"],
     ["Invalid username or password", "帳號或密碼錯誤"],
+    ["Order not found", "?????"],
     ["Request failed", "請求失敗，請稍後再試"],
     [
       "Completed or cancelled orders cannot be amended",

@@ -333,6 +333,11 @@ async function updateStatus(orderId, status) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ status }),
   });
+  if (res.status === 404) {
+    await fetchOrders();
+    showToast("訂單不存在或已被其他終端更新，已自動刷新看板");
+    return;
+  }
   if (!res.ok) {
     showToast(`更新失敗：${await Auth.readErrorMessage(res)}`);
     return;
