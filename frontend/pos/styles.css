@@ -413,7 +413,9 @@ body {
   min-height: 0;
   overflow: auto;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(172px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(168px, 198px));
+  justify-content: start;
+  align-content: start;
   gap: 9px;
   padding-right: 2px;
 }
@@ -936,7 +938,8 @@ body.peak-mode .combo-panel {
 }
 
 body.peak-mode .menu-grid {
-  grid-template-columns: repeat(auto-fill, minmax(158px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(152px, 182px));
+  justify-content: start;
   gap: 7px;
 }
 
@@ -1100,7 +1103,7 @@ body.peak-mode .message {
   }
 
   .menu-grid {
-    grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(146px, 1fr));
   }
 
   .combo-modal-panel {
