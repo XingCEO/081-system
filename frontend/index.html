@@ -47,7 +47,7 @@
       --gap-md: clamp(10px, 1vw, 20px);
       --panel-pad: clamp(20px, 2vw, 34px);
       --text-xs: clamp(10px, 0.5vw, 12px);
-      --text-sm: clamp(12px, 0.7vw, 15px);
+      --text-sm: clamp(11px, 0.65vw, 14px);
       --home-scale: 1;
     }
 
@@ -98,14 +98,14 @@
     .hero {
       display: grid;
       grid-template-columns: 1.3fr 1fr;
-      gap: var(--gap-md);
-      padding: clamp(14px, 1.4vw, 22px);
+      gap: clamp(8px, 0.8vw, 14px);
+      padding: clamp(10px, 1vw, 16px);
       border-bottom: 1px solid var(--line);
       background: linear-gradient(145deg, #ECFDF5, #F0FDF4 60%, #F8F9FA);
     }
 
     .kicker {
-      margin: 0 0 12px;
+      margin: 0 0 8px;
       color: #059669;
       letter-spacing: 0.18em;
       font-size: var(--text-xs);
@@ -114,9 +114,9 @@
     }
 
     h1 {
-      margin: 0 0 12px;
-      font-size: clamp(30px, 4.8vw, 52px);
-      line-height: 1.05;
+      margin: 0 0 8px;
+      font-size: clamp(26px, 4vw, 44px);
+      line-height: 1.02;
       letter-spacing: -0.04em;
       text-wrap: balance;
     }
@@ -124,13 +124,13 @@
     .lead {
       margin: 0;
       color: var(--ink-soft);
-      line-height: 1.6;
+      line-height: 1.45;
       font-size: var(--text-sm);
-      max-width: 56ch;
+      max-width: 42ch;
     }
 
     .chip-row {
-      margin: 14px 0 0;
+      margin: 10px 0 0;
       padding: 0;
       list-style: none;
       display: flex;
@@ -141,7 +141,7 @@
     .chip-row li {
       border: 1px solid #D1FAE5;
       border-radius: 999px;
-      padding: 5px 12px;
+      padding: 4px 10px;
       font-size: var(--text-xs);
       color: #065F46;
       background: #ECFDF5;
@@ -149,12 +149,12 @@
 
     .hero-side {
       display: grid;
-      gap: var(--gap-sm);
+      gap: 6px;
       align-content: start;
     }
 
     .hero-card {
-      padding: clamp(8px, 0.8vw, 12px);
+      padding: clamp(7px, 0.65vw, 10px);
       border: 1px solid var(--line);
       border-radius: clamp(11px, 1vw, 15px);
       background: var(--panel);
@@ -165,21 +165,21 @@
     .hero-card small {
       display: block;
       color: #059669;
-      margin-bottom: 6px;
+      margin-bottom: 4px;
       font-size: var(--text-xs);
       letter-spacing: 0.08em;
       text-transform: uppercase;
     }
 
     .hero-card strong {
-      font-size: clamp(20px, 1.8vw, 24px);
+      font-size: clamp(16px, 1.3vw, 19px);
       letter-spacing: -0.03em;
     }
 
     .hero-card p {
-      margin: 6px 0 0;
+      margin: 4px 0 0;
       color: var(--ink-soft);
-      line-height: 1.42;
+      line-height: 1.3;
       font-size: var(--text-sm);
     }
 
@@ -199,8 +199,8 @@
       border-radius: clamp(13px, 1.1vw, 18px);
       text-decoration: none;
       color: var(--ink);
-      min-height: clamp(94px, 8.4vw, 124px);
-      padding: clamp(9px, 0.75vw, 13px);
+      min-height: clamp(78px, 7.2vw, 104px);
+      padding: clamp(8px, 0.65vw, 11px);
       display: grid;
       align-content: end;
       gap: var(--gap-sm);
@@ -233,7 +233,7 @@
 
     .portal h2 {
       margin: 0;
-      font-size: clamp(15px, 1.25vw, 19px);
+      font-size: clamp(14px, 1.05vw, 17px);
       letter-spacing: -0.02em;
       position: relative;
       z-index: 2;
@@ -242,8 +242,8 @@
     .portal p {
       margin: 0;
       color: var(--ink-soft);
-      line-height: 1.4;
-      font-size: clamp(11px, 0.62vw, 13px);
+      line-height: 1.2;
+      font-size: clamp(10px, 0.55vw, 12px);
       position: relative;
       z-index: 2;
     }
@@ -323,7 +323,7 @@
 
       .hero {
         grid-template-columns: 1fr;
-        padding: clamp(12px, 2.8vw, 18px);
+        padding: clamp(10px, 2.2vw, 14px);
       }
 
       .portal-grid {
@@ -343,33 +343,27 @@
     <section class="hero">
       <div>
         <p class="kicker">Breakfast Ops System</p>
-        <h1>一套打通點餐、出餐、庫存與營運管理</h1>
-        <p class="lead">
-          前台建立訂單後，廚房看板即時同步，支付與庫存扣減自動串接，管理端直接查看營收、熱銷與低庫存。
-          現場更快，管理更穩。
-        </p>
+        <h1>點餐到出餐，一頁打通</h1>
+        <p class="lead">前台、廚房、庫存與報表一次整合。</p>
         <ul class="chip-row">
-          <li>POS + KDS 即時同步</li>
-          <li>庫存交易可追蹤</li>
-          <li>營運數據日報表</li>
+          <li>即時同步</li>
+          <li>庫存追蹤</li>
+          <li>營運報表</li>
         </ul>
       </div>
 
       <aside class="hero-side">
         <article class="hero-card">
           <small>Operation Flow</small>
-          <strong>接單 7 秒內到廚房</strong>
-          <p>WebSocket 事件推播，廚房不需手動重整。</p>
+          <strong>接單秒到廚房</strong>
         </article>
         <article class="hero-card">
           <small>Inventory Safety</small>
-          <strong>庫存不足即時阻擋</strong>
-          <p>防止超賣，改單與取消會自動調整原料。</p>
+          <strong>不足即時阻擋</strong>
         </article>
         <article class="hero-card">
           <small>Role Control</small>
-          <strong>角色權限清楚隔離</strong>
-          <p>櫃台、廚房、店長、老闆使用同系統但不同權限。</p>
+          <strong>角色權限分離</strong>
         </article>
       </aside>
     </section>
@@ -377,23 +371,23 @@
     <section class="portal-grid">
       <a class="portal portal-pos" href="/pos">
         <h2>前台 POS</h2>
-        <p>點餐、結帳、修單、看近期訂單。</p>
+        <p>點餐與結帳</p>
       </a>
       <a class="portal portal-kds" href="/kds">
         <h2>廚房 KDS</h2>
-        <p>待處理 / 製作中 / 待取餐分欄管理。</p>
+        <p>分欄控單</p>
       </a>
       <a class="portal portal-admin" href="/admin">
         <h2>後台管理</h2>
-        <p>庫存異動、營運分析、稽核紀錄。</p>
+        <p>庫存與報表</p>
       </a>
       <a class="portal portal-pickup" href="/pickup">
         <h2>取餐叫號看板</h2>
-        <p>即時顯示製作中、可取餐、已完成號碼。</p>
+        <p>叫號即時更新</p>
       </a>
       <a class="portal portal-docs" href="/docs">
         <h2>API 文件</h2>
-        <p>Swagger 文件與所有端點測試入口。</p>
+        <p>端點測試入口</p>
       </a>
     </section>
 
