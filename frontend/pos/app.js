@@ -715,17 +715,16 @@ function renderRecentOrders() {
     copyBtn.addEventListener("click", () => refillFromOrder(order));
     actionWrap?.appendChild(copyBtn);
 
-    if (["pending", "preparing", "ready"].includes(order.status)) {
-      const amendBtn = document.createElement("button");
-      amendBtn.type = "button";
-      amendBtn.textContent = "改單";
-      amendBtn.disabled = state.cart.length === 0 || state.comboCart.length > 0;
-      if (state.comboCart.length > 0) {
-        amendBtn.title = "目前購物車含套餐，無法直接改單";
-      }
-      amendBtn.addEventListener("click", () => amendOrder(order.id, order.order_number));
-      actionWrap?.appendChild(amendBtn);
+    const amendBtn = document.createElement("button");
+    amendBtn.type = "button";
+    amendBtn.textContent = "改單";
+    if (state.comboCart.length > 0) {
+      amendBtn.title = "購物車含套餐時無法改單";
+    } else if (state.cart.length === 0) {
+      amendBtn.title = "會先載入此訂單，調整後再按一次改單";
     }
+    amendBtn.addEventListener("click", () => beginAmendOrder(order));
+    actionWrap?.appendChild(amendBtn);
 
     els.orders.appendChild(card);
   });
@@ -764,6 +763,28 @@ function renderHeldOrders() {
   });
 
   updateTabCounters();
+}
+
+function beginAmendOrder(order) {
+  if (!order) return;
+  const amendable = ["pending", "preparing", "ready"].includes(order.status);
+  if (!amendable) {
+    setMessage(`訂單 #${order.order_number} 目前狀態不可改單，請用一鍵復單開新單`, "error");
+    return;
+  }
+
+  if (state.comboCart.length > 0) {
+    setMessage("目前購物車含套餐，請先清空套餐再改單", "error");
+    return;
+  }
+
+  if (state.cart.length === 0) {
+    refillFromOrder(order);
+    setMessage(`已載入 #${order.order_number}，請調整後再按改單`, "success");
+    return;
+  }
+
+  amendOrder(order.id, order.order_number);
 }
 
 function buildCartItemsPayload() {
