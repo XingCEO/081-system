@@ -221,7 +221,7 @@ body {
 .workspace {
   min-height: 0;
   display: grid;
-  grid-template-columns: minmax(0, 1.65fr) minmax(410px, 1fr);
+  grid-template-columns: minmax(0, 1.68fr) minmax(420px, 1fr);
   gap: 10px;
 }
 
@@ -484,16 +484,16 @@ body {
   position: sticky;
   top: 0;
   max-height: calc(100dvh - 24px);
-  background: #0F1A2D;
-  border-color: #2A3A54;
+  background: var(--surface);
+  border-color: var(--line);
 }
 
 .order-panel .panel-head h2 {
-  color: #EFF4FB;
+  color: var(--text);
 }
 
 .order-panel .sub {
-  color: #A7B8CE;
+  color: var(--text-soft);
 }
 
 .order-panel-head {
@@ -510,9 +510,9 @@ body {
 .tab-btn {
   min-height: 40px;
   border-radius: 999px;
-  border: 1px solid #3D5376;
-  background: #17253C;
-  color: #C6D4E8;
+  border: 1px solid var(--line);
+  background: var(--surface-soft);
+  color: #2F445E;
   font-family: var(--font-body);
   font-size: 13px;
   font-weight: 700;
@@ -529,11 +529,17 @@ body {
   color: #FFFFFF;
 }
 
+.tab-btn.active .badge-pill {
+  background: rgba(255, 255, 255, 0.28);
+  color: #FFFFFF;
+}
+
 .badge-pill {
   min-width: 22px;
   height: 22px;
   border-radius: 999px;
-  background: rgba(15, 23, 42, 0.34);
+  background: rgba(37, 99, 235, 0.16);
+  color: #1E40AF;
   font-size: 12px;
   display: inline-flex;
   align-items: center;
@@ -564,15 +570,15 @@ body {
   gap: 6px;
   font-size: 12px;
   font-weight: 500;
-  color: #A7B8CE;
+  color: var(--text-soft);
 }
 
 .field select {
   min-height: var(--touch-main);
-  border: 1px solid #3D5376;
+  border: 1px solid var(--line);
   border-radius: 10px;
-  background: #1A2A44;
-  color: #F3F7FD;
+  background: #FFFFFF;
+  color: var(--text);
   font-family: var(--font-body);
   font-size: 15px;
   padding: 0 10px;
@@ -580,8 +586,8 @@ body {
 
 .field select:focus-visible {
   outline: none;
-  border-color: rgba(37, 99, 235, 0.78);
-  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.28);
+  border-color: rgba(37, 99, 235, 0.72);
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.16);
 }
 
 .cart-wrap {
@@ -607,9 +613,9 @@ body {
 .orders-empty,
 .held-empty {
   min-height: 96px;
-  border: 1px dashed #3F567A;
+  border: 1px dashed var(--line-strong);
   border-radius: 14px;
-  color: #A7B8CE;
+  color: var(--text-soft);
   font-size: 13px;
   text-align: center;
   padding: 14px;
@@ -620,9 +626,10 @@ body {
 .cart-line,
 .order-card,
 .held-card {
-  border: 1px solid #385074;
+  border: 1px solid var(--line);
   border-radius: var(--radius-card);
-  background: #17253B;
+  background: #FFFFFF;
+  box-shadow: var(--shadow-card);
   padding: 10px;
   display: grid;
   gap: 8px;
@@ -641,7 +648,7 @@ body {
 .order-number {
   font-size: 15px;
   font-weight: 800;
-  color: #F2F7FD;
+  color: var(--text);
 }
 
 .cart-line-total {
@@ -661,7 +668,7 @@ body {
 .cart-line-qty,
 .order-items,
 .held-meta {
-  color: #A9BCD3;
+  color: var(--text-soft);
   font-size: 13px;
   line-height: 1.45;
 }
@@ -679,9 +686,9 @@ body {
 .held-actions button {
   min-height: 38px;
   border-radius: 9px;
-  border: 1px solid #3F577B;
-  background: #223350;
-  color: #D7E3F4;
+  border: 1px solid var(--line);
+  background: var(--surface-soft);
+  color: #2F445E;
   font-family: var(--font-body);
   font-size: 13px;
   font-weight: 700;
@@ -692,22 +699,23 @@ body {
 .cart-line-actions button:hover,
 .order-actions button:hover,
 .held-actions button:hover {
-  border-color: #5979A8;
+  border-color: rgba(37, 99, 235, 0.55);
+  background: rgba(37, 99, 235, 0.08);
 }
 
 .cart-line-actions button[data-op="minus"],
 .held-actions .danger,
 .order-actions .danger {
-  border-color: rgba(248, 113, 113, 0.55);
-  color: #FECACA;
-  background: rgba(127, 29, 29, 0.32);
+  border-color: rgba(239, 68, 68, 0.35);
+  color: var(--danger);
+  background: rgba(254, 242, 242, 0.95);
 }
 
 .badge {
   border-radius: 999px;
   padding: 3px 10px;
-  background: rgba(37, 99, 235, 0.22);
-  color: #DBEAFE;
+  background: rgba(37, 99, 235, 0.14);
+  color: #1E40AF;
   font-size: 12px;
   font-weight: 700;
 }
@@ -722,29 +730,29 @@ body {
   border-radius: 999px;
   padding: 2px 8px;
   font-size: 12px;
-  background: #233857;
-  color: #BFD0E5;
+  background: #EFF4FA;
+  color: #4D637D;
 }
 
 .summary-box {
   border: 1px solid rgba(37, 99, 235, 0.55);
   border-radius: 13px;
   padding: 10px;
-  background: linear-gradient(130deg, rgba(37, 99, 235, 0.2) 0%, rgba(37, 99, 235, 0.08) 100%);
+  background: linear-gradient(130deg, rgba(37, 99, 235, 0.12) 0%, rgba(37, 99, 235, 0.04) 100%);
 }
 
 .summary-row {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  color: #E9F1FC;
+  color: var(--text);
   font-size: 14px;
 }
 
 .summary-row strong {
   font-family: var(--font-heading);
   font-size: 31px;
-  color: #DBEAFE;
+  color: #1E3A8A;
   letter-spacing: -0.02em;
 }
 
@@ -777,24 +785,24 @@ body {
 
 .danger-btn {
   min-width: 90px;
-  border: 1px solid rgba(248, 113, 113, 0.45);
-  background: rgba(127, 29, 29, 0.3);
-  color: #FECACA;
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  background: rgba(254, 242, 242, 0.95);
+  color: var(--danger);
 }
 
 .message {
   min-height: 24px;
   margin: 2px 0 0;
   font-size: 13px;
-  color: #A7B8CE;
+  color: var(--text-soft);
 }
 
 .message.success {
-  color: #6EE7B7;
+  color: var(--success);
 }
 
 .message.error {
-  color: #FCA5A5;
+  color: var(--danger);
 }
 
 .combo-control-block {
@@ -1025,7 +1033,7 @@ body.peak-mode .message {
   }
 
   .workspace {
-    grid-template-columns: minmax(0, 1.52fr) minmax(380px, 1fr);
+    grid-template-columns: minmax(0, 1.55fr) minmax(390px, 1fr);
   }
 }
 
