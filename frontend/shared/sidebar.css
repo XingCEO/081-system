@@ -236,6 +236,51 @@
 }
 
 /* 平板優化 - 觸控友善 */
+@media (max-width: 1320px) {
+  .main-content {
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .sidebar {
+    width: 72px;
+    padding: 12px 0;
+  }
+
+  .sidebar-logo {
+    width: 44px;
+    height: 44px;
+    margin-bottom: 20px;
+    font-size: 22px;
+    border-radius: 12px;
+  }
+
+  .sidebar-nav {
+    gap: 6px;
+    padding: 0 8px;
+  }
+
+  .sidebar-item,
+  .sidebar-logout {
+    min-height: 64px;
+    padding: 10px 6px;
+    gap: 4px;
+  }
+
+  .sidebar-icon {
+    font-size: 22px;
+  }
+
+  .sidebar-label {
+    display: none;
+  }
+
+  .sidebar-item.active::before {
+    left: -8px;
+    height: 24px;
+  }
+}
+
 @media (hover: none) and (pointer: coarse) {
   .sidebar-item,
   .sidebar-logout {

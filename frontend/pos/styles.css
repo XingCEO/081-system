@@ -921,6 +921,35 @@ body {
   }
 }
 
+@media (max-width: 1100px) {
+  .pos-topbar {
+    height: auto;
+    grid-template-columns: 1fr;
+    align-items: stretch;
+    padding: 10px var(--spacing-md);
+    gap: var(--spacing-sm);
+  }
+
+  .topbar-left {
+    gap: var(--spacing-sm);
+  }
+
+  .topbar-center {
+    max-width: none;
+    min-width: 0;
+    justify-self: stretch;
+  }
+
+  .topbar-right {
+    justify-content: flex-start;
+  }
+
+  .pos-workspace {
+    grid-template-columns: 1fr;
+    grid-template-rows: minmax(0, 1fr) minmax(340px, 45vh);
+  }
+}
+
 @media (max-width: 1024px) {
   .topbar-btn span:not(.btn-icon) {
     display: none;

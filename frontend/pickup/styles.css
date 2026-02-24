@@ -222,6 +222,21 @@ body.density-dense .ticket .meta {
   font-size: 11px;
 }
 
+@media (max-width: 1180px) {
+  .topbar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .board {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .lane-completed {
+    grid-column: 1 / -1;
+  }
+}
+
 @media (max-width: 980px) {
   body {
     height: auto;
