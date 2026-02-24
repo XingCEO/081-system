@@ -105,6 +105,16 @@ def _validate_choice_counts(
     side_choice_count: int,
     side_option_count: int,
 ) -> None:
+    if drink_choice_count > 0 and eligible_drink_count == 0:
+        raise HTTPException(
+            status_code=400,
+            detail="eligible_drink_item_ids is required when drink_choice_count > 0",
+        )
+    if side_choice_count > 0 and side_option_count == 0:
+        raise HTTPException(
+            status_code=400,
+            detail="side_options is required when side_choice_count > 0",
+        )
     if eligible_drink_count > 0 and drink_choice_count > eligible_drink_count:
         raise HTTPException(
             status_code=400,

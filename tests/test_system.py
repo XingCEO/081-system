@@ -4,6 +4,7 @@ import sys
 
 os.environ["DATABASE_URL"] = "sqlite:///./test_breakfast.db"
 os.environ["APP_ENV"] = "test"
+os.environ["AUTH_DISABLED"] = "false"
 os.environ["SECRET_KEY"] = "test-secret-key"
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 
@@ -419,6 +420,42 @@ def test_staff_cannot_create_combo_rule() -> None:
         },
     )
     assert res.status_code == 403
+
+
+def test_combo_choice_count_requires_available_options() -> None:
+    manager_headers = auth_headers("manager1", "manager1234")
+
+    no_drink_options = client.post(
+        "/api/menu/combos",
+        headers=manager_headers,
+        json={
+            "code": "SETOPT",
+            "name": "Invalid Options Set",
+            "bundle_price": 40,
+            "drink_choice_count": 1,
+            "side_choice_count": 1,
+            "eligible_drink_item_ids": [],
+            "side_options": [],
+        },
+    )
+    assert no_drink_options.status_code == 400
+    assert no_drink_options.json()["detail"] == "eligible_drink_item_ids is required when drink_choice_count > 0"
+
+    no_side_options = client.post(
+        "/api/menu/combos",
+        headers=manager_headers,
+        json={
+            "code": "SETOPT2",
+            "name": "Invalid Side Set",
+            "bundle_price": 40,
+            "drink_choice_count": 0,
+            "side_choice_count": 1,
+            "eligible_drink_item_ids": [],
+            "side_options": [],
+        },
+    )
+    assert no_side_options.status_code == 400
+    assert no_side_options.json()["detail"] == "side_options is required when side_choice_count > 0"
 
 
 def test_combo_order_uses_bundle_price_not_sum_of_items() -> None:

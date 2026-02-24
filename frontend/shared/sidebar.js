@@ -79,6 +79,12 @@ function createSidebar(currentPage) {
   logoutBtn.type = 'button';
   logoutBtn.onclick = () => {
     if (confirm('確定要登出嗎？')) {
+      if (window.Auth && typeof window.Auth.clearSession === 'function') {
+        window.Auth.clearSession();
+      } else {
+        localStorage.removeItem('breakfast_auth');
+      }
+      // Backward compatibility for legacy key.
       localStorage.removeItem('auth_token');
       window.location.href = '/';
     }

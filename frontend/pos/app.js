@@ -1139,7 +1139,7 @@ function setupEvents() {
   document.querySelectorAll(".quick-change-btn").forEach((btn) => {
     btn.addEventListener("click", () => {
       const received = parseInt(btn.dataset.amount, 10);
-      const total = calculateTotal();
+      const total = calcCartTotal();
       const change = received - total;
       const changeDisplay = document.getElementById("changeDisplay");
 
